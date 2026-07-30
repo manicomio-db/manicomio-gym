@@ -189,3 +189,19 @@ export async function deleteSocio(formData: FormData) {
   revalidatePath("/staff/socios");
   revalidatePath("/dueno");
 }
+
+export async function deleteDayPass(formData: FormData) {
+  const { supabase } = await requireDueno();
+  const id = String(formData.get("id") ?? "");
+  await supabase.from("day_passes").delete().eq("id", id);
+  revalidatePath("/staff/acceso");
+  revalidatePath("/dueno/ingresos");
+}
+
+export async function deleteMembership(formData: FormData) {
+  const { supabase } = await requireDueno();
+  const id = String(formData.get("id") ?? "");
+  await supabase.from("memberships").delete().eq("id", id);
+  revalidatePath("/staff/socios");
+  revalidatePath("/dueno/ingresos");
+}
