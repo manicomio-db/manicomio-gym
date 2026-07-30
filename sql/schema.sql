@@ -50,7 +50,18 @@ create table if not exists public.memberships (
   start_date date not null default current_date,
   end_date date not null,
   status text not null default 'activo' check (status in ('activo', 'vencido', 'cancelado')),
+  amount_paid numeric(10, 2),
   created_by uuid references public.profiles (id),
+  created_at timestamptz not null default now()
+);
+
+alter table public.memberships add column if not exists amount_paid numeric(10, 2);
+
+create table if not exists public.day_passes (
+  id uuid primary key default gen_random_uuid(),
+  visitor_name text not null,
+  amount numeric(10, 2) not null,
+  staff_id uuid references public.profiles (id),
   created_at timestamptz not null default now()
 );
 
@@ -243,6 +254,7 @@ alter table public.products enable row level security;
 alter table public.sales enable row level security;
 alter table public.gym_info enable row level security;
 alter table public.check_ins enable row level security;
+alter table public.day_passes enable row level security;
 
 -- profiles ---------------------------------------------------------------
 drop policy if exists "profiles_select_own_or_staff" on public.profiles;
@@ -360,6 +372,19 @@ create policy "check_ins_insert_staff" on public.check_ins
 
 drop policy if exists "check_ins_delete_dueno" on public.check_ins;
 create policy "check_ins_delete_dueno" on public.check_ins
+  for delete using (public.is_dueno());
+
+-- day_passes (pases de visita) ------------------------------------------------
+drop policy if exists "day_passes_select_staff" on public.day_passes;
+create policy "day_passes_select_staff" on public.day_passes
+  for select using (public.is_staff_or_dueno());
+
+drop policy if exists "day_passes_insert_staff" on public.day_passes;
+create policy "day_passes_insert_staff" on public.day_passes
+  for insert with check (public.is_staff_or_dueno());
+
+drop policy if exists "day_passes_delete_dueno" on public.day_passes;
+create policy "day_passes_delete_dueno" on public.day_passes
   for delete using (public.is_dueno());
 
 -- ----------------------------------------------------------------------------

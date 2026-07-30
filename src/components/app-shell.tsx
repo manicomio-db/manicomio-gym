@@ -24,6 +24,7 @@ const NAV: Record<Role, NavItem[]> = {
   ],
   dueno: [
     { href: "/dueno", label: "Dashboard" },
+    { href: "/dueno/ingresos", label: "Ingresos" },
     { href: "/staff/acceso", label: "Control de acceso" },
     { href: "/staff/rutinas", label: "Rutinas" },
     { href: "/staff/ventas", label: "Ventas" },

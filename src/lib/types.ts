@@ -27,6 +27,7 @@ export type Membership = {
   start_date: string;
   end_date: string;
   status: MembershipStatus;
+  amount_paid: number | null;
   created_by: string | null;
   created_at: string;
   membership_plans?: MembershipPlan | null;
@@ -107,4 +108,12 @@ export type CheckIn = {
   staff_id: string | null;
   created_at: string;
   profiles?: Profile | null;
+};
+
+export type DayPass = {
+  id: string;
+  visitor_name: string;
+  amount: number;
+  staff_id: string | null;
+  created_at: string;
 };

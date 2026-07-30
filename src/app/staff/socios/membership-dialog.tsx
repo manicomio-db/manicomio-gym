@@ -38,6 +38,9 @@ export function MembershipDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
+  const [amount, setAmount] = useState(
+    () => plans.find((p) => p.id === currentPlanId)?.price.toString() ?? ""
+  );
 
   async function handleSubmit(formData: FormData) {
     setPending(true);
@@ -65,7 +68,14 @@ export function MembershipDialog({
           <input type="hidden" name="socio_id" value={socioId} />
           <div className="flex flex-col gap-2">
             <Label htmlFor="plan_id">Plan</Label>
-            <Select name="plan_id" defaultValue={currentPlanId ?? undefined}>
+            <Select
+              name="plan_id"
+              defaultValue={currentPlanId ?? undefined}
+              onValueChange={(value) => {
+                const plan = plans.find((p) => p.id === value);
+                if (plan) setAmount(plan.price.toString());
+              }}
+            >
               <SelectTrigger id="plan_id">
                 <SelectValue placeholder="Selecciona un plan" />
               </SelectTrigger>
@@ -77,6 +87,19 @@ export function MembershipDialog({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="amount_paid">Monto cobrado (MXN)</Label>
+            <Input
+              id="amount_paid"
+              name="amount_paid"
+              type="number"
+              step="0.01"
+              min={0}
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              required
+            />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="start_date">Fecha de inicio</Label>

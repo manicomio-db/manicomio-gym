@@ -92,35 +92,43 @@ export async function updateMembership(formData: FormData) {
   const planId = String(formData.get("plan_id") ?? "") || null;
   const endDate = String(formData.get("end_date") ?? "");
   const startDate = String(formData.get("start_date") ?? new Date().toISOString().slice(0, 10));
+  const amountPaid = formData.get("amount_paid");
 
   if (!socioId || !endDate) return;
 
-  const { data: existing } = await supabase
-    .from("memberships")
-    .select("id")
-    .eq("socio_id", socioId)
-    .order("end_date", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (existing) {
-    await supabase
-      .from("memberships")
-      .update({ plan_id: planId, start_date: startDate, end_date: endDate, status: "activo" })
-      .eq("id", existing.id);
-  } else {
-    await supabase.from("memberships").insert({
-      socio_id: socioId,
-      plan_id: planId,
-      start_date: startDate,
-      end_date: endDate,
-      status: "activo",
-      created_by: profile.id,
-    });
-  }
+  // Cada activación/renovación se guarda como una fila nueva (historial real de
+  // cobros) en vez de sobrescribir la anterior, para poder reportar ingresos.
+  await supabase.from("memberships").insert({
+    socio_id: socioId,
+    plan_id: planId,
+    start_date: startDate,
+    end_date: endDate,
+    status: "activo",
+    amount_paid: amountPaid ? Number(amountPaid) : null,
+    created_by: profile.id,
+  });
 
   revalidatePath("/staff/socios");
   revalidatePath("/dueno/socios");
+  revalidatePath("/dueno/ingresos");
+}
+
+export async function registerDayPass(formData: FormData) {
+  const { profile, supabase } = await requireStaff();
+
+  const visitorName = String(formData.get("visitor_name") ?? "").trim();
+  const amount = Number(formData.get("amount") ?? 0);
+
+  if (!visitorName || amount <= 0) return;
+
+  await supabase.from("day_passes").insert({
+    visitor_name: visitorName,
+    amount,
+    staff_id: profile.id,
+  });
+
+  revalidatePath("/staff/acceso");
+  revalidatePath("/dueno/ingresos");
 }
 
 export type CheckInState = {
