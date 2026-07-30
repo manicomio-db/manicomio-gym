@@ -11,16 +11,25 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 export default function ResetPasswordPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const description = params.get("error_description");
+    if (description) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of the URL on mount
+      setLinkError(decodeURIComponent(description.replace(/\+/g, " ")));
+      return;
+    }
+
     const supabase = createClient();
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") setReady(true);
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setReady(true);
     });
 
     supabase.auth.getSession().then(({ data }) => {
@@ -56,7 +65,12 @@ export default function ResetPasswordPage() {
           <CardDescription>Elige la contraseña que usarás para entrar.</CardDescription>
         </CardHeader>
         <CardContent>
-          {!ready ? (
+          {linkError ? (
+            <p className="text-sm text-destructive">
+              {linkError} Pide un nuevo enlace desde &quot;¿Olvidaste tu contraseña?&quot; en la
+              pantalla de inicio de sesión.
+            </p>
+          ) : !ready ? (
             <p className="text-sm text-muted-foreground">
               Verificando tu enlace de recuperación... si esto no cambia, pide un nuevo enlace desde
               &quot;Olvidé mi contraseña&quot; en la pantalla de inicio de sesión.
