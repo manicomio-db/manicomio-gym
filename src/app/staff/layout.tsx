@@ -7,7 +7,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
   if (profile.role !== "staff" && profile.role !== "dueno") redirect("/");
 
   return (
-    <AppShell role="staff" name={profile.full_name}>
+    <AppShell role={profile.role as "staff" | "dueno"} name={profile.full_name}>
       {children}
     </AppShell>
   );
