@@ -1,19 +1,8 @@
 import { requireProfile } from "@/lib/supabase/session";
-import { requestRoutine } from "../actions";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import type { Routine, RoutineRequest } from "@/lib/types";
+import { RequestRoutineForm } from "./request-form";
 
 const STATUS_LABEL: Record<string, string> = {
   pendiente: "Pendiente",
@@ -39,6 +28,10 @@ export default async function SocioRutinaPage() {
       .order("created_at", { ascending: false })
       .returns<RoutineRequest[]>(),
   ]);
+
+  const activeRequest = requests?.find(
+    (r) => r.status === "pendiente" || r.status === "en_progreso"
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -90,43 +83,20 @@ export default async function SocioRutinaPage() {
           <CardDescription>Tu instructor la revisará y te la asignará.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={requestRoutine} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="objetivo">Objetivo</Label>
-              <Input id="objetivo" name="objetivo" placeholder="Ej: Bajar de peso, ganar fuerza" required />
+          {activeRequest ? (
+            <div className="flex flex-col gap-2 rounded-md border p-3">
+              <div className="flex items-center justify-between">
+                <p className="font-medium">{activeRequest.objetivo}</p>
+                <Badge variant="secondary">{STATUS_LABEL[activeRequest.status]}</Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Ya tienes una solicitud en trámite. Cuando tu instructor te asigne la rutina,
+                aparecerá arriba y podrás pedir una nueva.
+              </p>
             </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="nivel">Nivel</Label>
-              <Select name="nivel" defaultValue="intermedio">
-                <SelectTrigger id="nivel">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="principiante">Principiante</SelectItem>
-                  <SelectItem value="intermedio">Intermedio</SelectItem>
-                  <SelectItem value="avanzado">Avanzado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="sesiones_semana">Sesiones por semana</Label>
-              <Input
-                id="sesiones_semana"
-                name="sesiones_semana"
-                type="number"
-                min={1}
-                max={7}
-                defaultValue={3}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="lesiones">Lesiones o condiciones previas</Label>
-              <Textarea id="lesiones" name="lesiones" placeholder="Rodilla, hombro, ninguna..." />
-            </div>
-            <Button type="submit" className="w-fit">
-              Enviar solicitud
-            </Button>
-          </form>
+          ) : (
+            <RequestRoutineForm />
+          )}
         </CardContent>
       </Card>
 

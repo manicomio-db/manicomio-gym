@@ -47,6 +47,13 @@ export async function markInProgress(requestId: string) {
   revalidatePath("/staff/rutinas");
 }
 
+export async function discardRequest(requestId: string) {
+  const { supabase } = await requireStaff();
+  await supabase.from("routine_requests").delete().eq("id", requestId);
+  revalidatePath("/staff/rutinas");
+  revalidatePath("/socio/rutina");
+}
+
 export async function registerSale(formData: FormData) {
   const { profile, supabase } = await requireStaff();
 

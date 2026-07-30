@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import type { RoutineContent } from "@/lib/types";
-import { saveRoutine, markInProgress } from "../actions";
+import { saveRoutine, markInProgress, discardRequest } from "../actions";
 
 type RequestInfo = {
   id: string;
@@ -172,6 +172,19 @@ export function RoutineComposer({ request }: { request: RequestInfo }) {
               Marcar en progreso
             </Button>
           )}
+          <Button
+            type="button"
+            variant="ghost"
+            className="text-destructive"
+            onClick={() => {
+              if (confirm(`¿Descartar la solicitud de ${request.socioNombre}? No se puede deshacer.`)) {
+                discardRequest(request.id);
+                toast.success("Solicitud descartada.");
+              }
+            }}
+          >
+            Descartar
+          </Button>
         </div>
 
         {expanded && (
