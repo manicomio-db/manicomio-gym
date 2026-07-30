@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Membership, MembershipPlan, Profile } from "@/lib/types";
 import { MembershipDialog } from "./membership-dialog";
-import { deleteSocio } from "@/app/dueno/actions";
+import { deleteSocio, deleteMembership } from "@/app/dueno/actions";
 
 export default async function StaffSociosPage() {
   const { profile, supabase } = await requireProfile();
@@ -63,6 +63,14 @@ export default async function StaffSociosPage() {
                     currentPlanId={membership?.plan_id ?? null}
                     currentEndDate={membership?.end_date ?? null}
                   />
+                  {isDueno && membership && (
+                    <form action={deleteMembership}>
+                      <input type="hidden" name="id" value={membership.id} />
+                      <Button type="submit" size="sm" variant="destructive">
+                        Quitar membresía
+                      </Button>
+                    </form>
+                  )}
                   {isDueno && (
                     <form action={deleteSocio}>
                       <input type="hidden" name="id" value={socio.id} />
