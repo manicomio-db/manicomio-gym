@@ -205,3 +205,12 @@ export async function deleteMembership(formData: FormData) {
   revalidatePath("/staff/socios");
   revalidatePath("/dueno/ingresos");
 }
+
+export async function deleteSale(formData: FormData) {
+  const { supabase } = await requireDueno();
+  const id = String(formData.get("id") ?? "");
+  await supabase.from("sales").delete().eq("id", id);
+  revalidatePath("/staff/ventas");
+  revalidatePath("/dueno/tienda");
+  revalidatePath("/dueno/ingresos");
+}

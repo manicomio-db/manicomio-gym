@@ -2,7 +2,7 @@ import { requireProfile } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { deleteDayPass, deleteMembership } from "../actions";
+import { deleteDayPass, deleteMembership, deleteSale } from "../actions";
 
 const MONTH_LABEL = new Intl.DateTimeFormat("es-MX", { month: "long", year: "numeric" });
 
@@ -15,6 +15,14 @@ type MembershipRow = {
 };
 
 type DayPassRow = { id: string; visitor_name: string; amount: number; created_at: string };
+
+type SaleRow = {
+  id: string;
+  quantity: number;
+  total: number;
+  created_at: string;
+  products: { name: string } | null;
+};
 
 export default async function DuenoIngresosPage() {
   const { supabase } = await requireProfile();
@@ -36,7 +44,12 @@ export default async function DuenoIngresosPage() {
       .gte("created_at", monthStart)
       .order("created_at", { ascending: false })
       .returns<DayPassRow[]>(),
-    supabase.from("sales").select("total").gte("created_at", monthStart).returns<{ total: number }[]>(),
+    supabase
+      .from("sales")
+      .select("id, quantity, total, created_at, products(name)")
+      .gte("created_at", monthStart)
+      .order("created_at", { ascending: false })
+      .returns<SaleRow[]>(),
   ]);
 
   const membershipTotal = (memberships ?? []).reduce((sum, m) => sum + Number(m.amount_paid), 0);
@@ -187,6 +200,48 @@ export default async function DuenoIngresosPage() {
                     <TableCell>
                       <form action={deleteDayPass}>
                         <input type="hidden" name="id" value={d.id} />
+                        <Button type="submit" size="sm" variant="destructive">
+                          Borrar
+                        </Button>
+                      </form>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <p className="text-muted-foreground">Sin registros este mes.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Ventas registradas este mes</CardTitle>
+          <CardDescription>Borra un registro si fue una prueba o un error.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {sales && sales.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Producto</TableHead>
+                  <TableHead>Cantidad</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sales.map((s) => (
+                  <TableRow key={s.id}>
+                    <TableCell>{s.products?.name ?? "—"}</TableCell>
+                    <TableCell>{s.quantity}</TableCell>
+                    <TableCell>${Number(s.total).toLocaleString("es-MX")}</TableCell>
+                    <TableCell>{new Date(s.created_at).toLocaleDateString("es-MX")}</TableCell>
+                    <TableCell>
+                      <form action={deleteSale}>
+                        <input type="hidden" name="id" value={s.id} />
                         <Button type="submit" size="sm" variant="destructive">
                           Borrar
                         </Button>
