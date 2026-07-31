@@ -33,7 +33,9 @@ export default async function DuenoIngresosPage() {
   const [{ data: memberships }, { data: dayPasses }, { data: sales }] = await Promise.all([
     supabase
       .from("memberships")
-      .select("id, amount_paid, created_at, membership_plans(name), profiles(full_name)")
+      .select(
+        "id, amount_paid, created_at, membership_plans(name), profiles!memberships_socio_id_fkey(full_name)"
+      )
       .gte("created_at", monthStart)
       .not("amount_paid", "is", null)
       .order("created_at", { ascending: false })
