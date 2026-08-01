@@ -214,3 +214,49 @@ export async function deleteSale(formData: FormData) {
   revalidatePath("/dueno/tienda");
   revalidatePath("/dueno/ingresos");
 }
+
+// --- Gastos -----------------------------------------------------------------
+
+export async function upsertExpenseCategory(formData: FormData) {
+  const { supabase } = await requireDueno();
+  const name = String(formData.get("name") ?? "").trim();
+  if (!name) return;
+  await supabase.from("expense_categories").insert({ name });
+  revalidatePath("/dueno/gastos");
+}
+
+export async function deleteExpenseCategory(formData: FormData) {
+  const { supabase } = await requireDueno();
+  const id = String(formData.get("id") ?? "");
+  await supabase.from("expense_categories").delete().eq("id", id);
+  revalidatePath("/dueno/gastos");
+}
+
+export async function createExpense(formData: FormData) {
+  const { profile, supabase } = await requireDueno();
+  const categoryId = String(formData.get("category_id") ?? "") || null;
+  const description = String(formData.get("description") ?? "").trim();
+  const amount = Number(formData.get("amount") ?? 0);
+  const expenseDate = String(formData.get("expense_date") ?? new Date().toISOString().slice(0, 10));
+
+  if (!description || amount <= 0) return;
+
+  await supabase.from("expenses").insert({
+    category_id: categoryId,
+    description,
+    amount,
+    expense_date: expenseDate,
+    created_by: profile.id,
+  });
+
+  revalidatePath("/dueno/gastos");
+  revalidatePath("/dueno/ingresos");
+}
+
+export async function deleteExpense(formData: FormData) {
+  const { supabase } = await requireDueno();
+  const id = String(formData.get("id") ?? "");
+  await supabase.from("expenses").delete().eq("id", id);
+  revalidatePath("/dueno/gastos");
+  revalidatePath("/dueno/ingresos");
+}

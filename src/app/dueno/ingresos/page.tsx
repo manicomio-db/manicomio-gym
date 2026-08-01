@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { requireProfile } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { deleteDayPass, deleteMembership, deleteSale } from "../actions";
 
 const MONTH_LABEL = new Intl.DateTimeFormat("es-MX", { month: "long", year: "numeric" });
@@ -30,7 +32,7 @@ export default async function DuenoIngresosPage() {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
-  const [{ data: memberships }, { data: dayPasses }, { data: sales }] = await Promise.all([
+  const [{ data: memberships }, { data: dayPasses }, { data: sales }, { data: expenses }] = await Promise.all([
     supabase
       .from("memberships")
       .select(
@@ -52,12 +54,15 @@ export default async function DuenoIngresosPage() {
       .gte("created_at", monthStart)
       .order("created_at", { ascending: false })
       .returns<SaleRow[]>(),
+    supabase.from("expenses").select("amount").gte("created_at", monthStart).returns<{ amount: number }[]>(),
   ]);
 
   const membershipTotal = (memberships ?? []).reduce((sum, m) => sum + Number(m.amount_paid), 0);
   const dayPassTotal = (dayPasses ?? []).reduce((sum, d) => sum + Number(d.amount), 0);
   const salesTotal = (sales ?? []).reduce((sum, s) => sum + Number(s.total), 0);
   const grandTotal = membershipTotal + dayPassTotal + salesTotal;
+  const expensesTotal = (expenses ?? []).reduce((sum, e) => sum + Number(e.amount), 0);
+  const netProfit = grandTotal - expensesTotal;
 
   const byPlan = new Map<string, { count: number; total: number }>();
   for (const m of memberships ?? []) {
@@ -79,7 +84,7 @@ export default async function DuenoIngresosPage() {
         <Card>
           <CardHeader>
             <CardTitle>${grandTotal.toLocaleString("es-MX")}</CardTitle>
-            <CardDescription>Total del mes</CardDescription>
+            <CardDescription>Ingresos del mes</CardDescription>
           </CardHeader>
         </Card>
         <Card>
@@ -98,6 +103,28 @@ export default async function DuenoIngresosPage() {
           <CardHeader>
             <CardTitle>${salesTotal.toLocaleString("es-MX")}</CardTitle>
             <CardDescription>Tienda</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-destructive">-${expensesTotal.toLocaleString("es-MX")}</CardTitle>
+            <CardDescription>
+              Gastos del mes ·{" "}
+              <Link href="/dueno/gastos" className="underline">
+                administrar
+              </Link>
+            </CardDescription>
+          </CardHeader>
+        </Card>
+        <Card className="neon-border">
+          <CardHeader>
+            <CardTitle className={cn(netProfit >= 0 ? "text-primary" : "text-destructive")}>
+              ${netProfit.toLocaleString("es-MX")}
+            </CardTitle>
+            <CardDescription>Utilidad neta (ingresos − gastos)</CardDescription>
           </CardHeader>
         </Card>
       </div>

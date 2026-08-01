@@ -65,6 +65,22 @@ create table if not exists public.day_passes (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.expense_categories (
+  id uuid primary key default gen_random_uuid(),
+  name text not null unique,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.expenses (
+  id uuid primary key default gen_random_uuid(),
+  category_id uuid references public.expense_categories (id) on delete set null,
+  description text not null,
+  amount numeric(10, 2) not null,
+  expense_date date not null default current_date,
+  created_by uuid references public.profiles (id),
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.classes (
   id uuid primary key default gen_random_uuid(),
   name text not null unique,
@@ -255,6 +271,8 @@ alter table public.sales enable row level security;
 alter table public.gym_info enable row level security;
 alter table public.check_ins enable row level security;
 alter table public.day_passes enable row level security;
+alter table public.expense_categories enable row level security;
+alter table public.expenses enable row level security;
 
 -- profiles ---------------------------------------------------------------
 drop policy if exists "profiles_select_own_or_staff" on public.profiles;
@@ -386,6 +404,15 @@ create policy "day_passes_insert_staff" on public.day_passes
 drop policy if exists "day_passes_delete_dueno" on public.day_passes;
 create policy "day_passes_delete_dueno" on public.day_passes
   for delete using (public.is_dueno());
+
+-- expense_categories / expenses (solo Director) --------------------------------
+drop policy if exists "expense_categories_all_dueno" on public.expense_categories;
+create policy "expense_categories_all_dueno" on public.expense_categories
+  for all using (public.is_dueno()) with check (public.is_dueno());
+
+drop policy if exists "expenses_all_dueno" on public.expenses;
+create policy "expenses_all_dueno" on public.expenses
+  for all using (public.is_dueno()) with check (public.is_dueno());
 
 -- ----------------------------------------------------------------------------
 -- Storage: bucket público para fotos de productos

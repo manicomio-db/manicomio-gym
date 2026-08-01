@@ -117,3 +117,20 @@ export type DayPass = {
   staff_id: string | null;
   created_at: string;
 };
+
+export type ExpenseCategory = {
+  id: string;
+  name: string;
+  created_at: string;
+};
+
+export type Expense = {
+  id: string;
+  category_id: string | null;
+  description: string;
+  amount: number;
+  expense_date: string;
+  created_by: string | null;
+  created_at: string;
+  expense_categories?: ExpenseCategory | null;
+};
