@@ -7,8 +7,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Product } from "@/lib/types";
-import { upsertProduct, deleteProduct } from "../actions";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { ExpenseCategory, Product } from "@/lib/types";
+import { upsertProduct, deleteProduct, restockProduct } from "../actions";
 
 export function ProductForm({ product, onDone }: { product?: Product; onDone?: () => void }) {
   const [pending, setPending] = useState(false);
@@ -73,7 +88,79 @@ export function ProductForm({ product, onDone }: { product?: Product; onDone?: (
   );
 }
 
-export function ProductCard({ product }: { product: Product }) {
+function RestockDialog({
+  product,
+  expenseCategories,
+}: {
+  product: Product;
+  expenseCategories: ExpenseCategory[];
+}) {
+  const [open, setOpen] = useState(false);
+  const [pending, setPending] = useState(false);
+
+  async function handleSubmit(formData: FormData) {
+    setPending(true);
+    try {
+      await restockProduct(formData);
+      toast.success("Stock actualizado y gasto registrado.");
+      setOpen(false);
+    } catch {
+      toast.error("No se pudo registrar el reabasto.");
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger render={<Button size="sm" variant="outline" />}>Reabastecer</DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Reabastecer {product.name}</DialogTitle>
+        </DialogHeader>
+        <form action={handleSubmit} className="flex flex-col gap-4">
+          <input type="hidden" name="product_id" value={product.id} />
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="quantity">Unidades que compraste</Label>
+            <Input id="quantity" name="quantity" type="number" min={1} required />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="cost">Costo total (MXN)</Label>
+            <Input id="cost" name="cost" type="number" step="0.01" min={0.01} required />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="category_id">Categoría de gasto</Label>
+            <Select name="category_id">
+              <SelectTrigger id="category_id">
+                <SelectValue placeholder="Selecciona (opcional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {expenseCategories.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button type="submit" disabled={pending}>
+              {pending ? "Guardando..." : "Registrar reabasto"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function ProductCard({
+  product,
+  expenseCategories,
+}: {
+  product: Product;
+  expenseCategories: ExpenseCategory[];
+}) {
   const [editing, setEditing] = useState(false);
 
   if (editing) {
@@ -94,6 +181,7 @@ export function ProductCard({ product }: { product: Product }) {
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>{product.name}</CardTitle>
         <div className="flex gap-2">
+          <RestockDialog product={product} expenseCategories={expenseCategories} />
           <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
             Editar
           </Button>

@@ -1,14 +1,15 @@
 import { requireProfile } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import type { Product } from "@/lib/types";
+import type { ExpenseCategory, Product } from "@/lib/types";
 import { ProductForm, ProductCard } from "./product-form";
 
 export default async function DuenoTiendaPage() {
   const { supabase } = await requireProfile();
 
-  const [{ data: products }, { data: sales }] = await Promise.all([
+  const [{ data: products }, { data: sales }, { data: expenseCategories }] = await Promise.all([
     supabase.from("products").select("*").order("name").returns<Product[]>(),
     supabase.from("sales").select("total"),
+    supabase.from("expense_categories").select("*").order("name").returns<ExpenseCategory[]>(),
   ]);
 
   const ingresos = (sales ?? []).reduce((sum, s) => sum + Number(s.total), 0);
@@ -38,7 +39,7 @@ export default async function DuenoTiendaPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {(products ?? []).map((p) => (
-          <ProductCard key={p.id} product={p} />
+          <ProductCard key={p.id} product={p} expenseCategories={expenseCategories ?? []} />
         ))}
       </div>
     </div>

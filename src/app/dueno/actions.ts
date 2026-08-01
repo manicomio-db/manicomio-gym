@@ -260,3 +260,40 @@ export async function deleteExpense(formData: FormData) {
   revalidatePath("/dueno/gastos");
   revalidatePath("/dueno/ingresos");
 }
+
+export async function restockProduct(formData: FormData) {
+  const { profile, supabase } = await requireDueno();
+
+  const productId = String(formData.get("product_id") ?? "");
+  const quantity = Number(formData.get("quantity") ?? 0);
+  const cost = Number(formData.get("cost") ?? 0);
+  const categoryId = String(formData.get("category_id") ?? "") || null;
+
+  if (!productId || quantity <= 0 || cost <= 0) return;
+
+  const { data: product } = await supabase
+    .from("products")
+    .select("name, stock")
+    .eq("id", productId)
+    .single();
+
+  if (!product) return;
+
+  await supabase
+    .from("products")
+    .update({ stock: product.stock + quantity })
+    .eq("id", productId);
+
+  await supabase.from("expenses").insert({
+    category_id: categoryId,
+    description: `Reabasto: ${product.name} (${quantity} unidades)`,
+    amount: cost,
+    expense_date: new Date().toISOString().slice(0, 10),
+    created_by: profile.id,
+  });
+
+  revalidatePath("/dueno/tienda");
+  revalidatePath("/socio/tienda");
+  revalidatePath("/dueno/gastos");
+  revalidatePath("/dueno/ingresos");
+}
