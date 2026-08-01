@@ -1,4 +1,5 @@
 import { requireProfile } from "@/lib/supabase/session";
+import { todayLocal } from "@/lib/date";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { Membership } from "@/lib/types";
@@ -22,7 +23,7 @@ export default async function SocioHomePage() {
     .limit(1)
     .maybeSingle<Membership>();
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayLocal();
   const isExpired = membership ? membership.end_date < today : true;
   const daysLeft = membership
     ? Math.ceil(

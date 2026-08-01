@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/supabase/session";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { todayLocal } from "@/lib/date";
 
 async function requireDueno() {
   const { profile, supabase } = await requireProfile();
@@ -237,7 +238,7 @@ export async function createExpense(formData: FormData) {
   const categoryId = String(formData.get("category_id") ?? "") || null;
   const description = String(formData.get("description") ?? "").trim();
   const amount = Number(formData.get("amount") ?? 0);
-  const expenseDate = String(formData.get("expense_date") ?? new Date().toISOString().slice(0, 10));
+  const expenseDate = String(formData.get("expense_date") ?? todayLocal());
 
   if (!description || amount <= 0) return;
 
@@ -288,7 +289,7 @@ export async function restockProduct(formData: FormData) {
     category_id: categoryId,
     description: `Reabasto: ${product.name} (${quantity} unidades)`,
     amount: cost,
-    expense_date: new Date().toISOString().slice(0, 10),
+    expense_date: todayLocal(),
     created_by: profile.id,
   });
 

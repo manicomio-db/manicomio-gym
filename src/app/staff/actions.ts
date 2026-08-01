@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/supabase/session";
+import { todayLocal } from "@/lib/date";
 import type { RoutineContent } from "@/lib/types";
 
 async function requireStaff() {
@@ -91,7 +92,7 @@ export async function updateMembership(formData: FormData) {
   const socioId = String(formData.get("socio_id") ?? "");
   const planId = String(formData.get("plan_id") ?? "") || null;
   const endDate = String(formData.get("end_date") ?? "");
-  const startDate = String(formData.get("start_date") ?? new Date().toISOString().slice(0, 10));
+  const startDate = String(formData.get("start_date") ?? todayLocal());
   const amountPaid = formData.get("amount_paid");
 
   if (!socioId || !endDate) return;
@@ -171,7 +172,7 @@ export async function registerCheckIn(
     .limit(1)
     .maybeSingle();
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayLocal();
   const status: "activo" | "vencido" | "sin_membresia" = !membership
     ? "sin_membresia"
     : membership.end_date >= today

@@ -1,4 +1,5 @@
 import { requireProfile } from "@/lib/supabase/session";
+import { todayLocal } from "@/lib/date";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ export default async function StaffSociosPage() {
     if (!latestBySocio.has(m.socio_id)) latestBySocio.set(m.socio_id, m);
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayLocal();
 
   return (
     <div className="flex flex-col gap-6">

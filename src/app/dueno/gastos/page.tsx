@@ -1,4 +1,5 @@
 import { requireProfile } from "@/lib/supabase/session";
+import { todayLocal } from "@/lib/date";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -134,7 +135,7 @@ export default async function DuenoGastosPage() {
                 id="expense_date"
                 name="expense_date"
                 type="date"
-                defaultValue={new Date().toISOString().slice(0, 10)}
+                defaultValue={todayLocal()}
               />
             </div>
             <Button type="submit">Registrar gasto</Button>

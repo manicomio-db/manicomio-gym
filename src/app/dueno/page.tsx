@@ -1,9 +1,10 @@
 import { requireProfile } from "@/lib/supabase/session";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { todayLocal } from "@/lib/date";
 
 export default async function DuenoHomePage() {
   const { supabase } = await requireProfile();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayLocal();
 
   const [{ count: sociosActivos }, { count: sociosTotal }, { count: pendientes }, { data: sales }] =
     await Promise.all([
