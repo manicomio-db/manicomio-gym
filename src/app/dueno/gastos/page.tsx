@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { requireProfile } from "@/lib/supabase/session";
 import { todayLocal } from "@/lib/date";
+import { currentMonthParam, monthLabel, monthRange, shiftMonth } from "@/lib/reports";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -20,13 +22,16 @@ import {
   deleteExpenseCategory,
 } from "../actions";
 
-const MONTH_LABEL = new Intl.DateTimeFormat("es-MX", { month: "long", year: "numeric" });
-
-export default async function DuenoGastosPage() {
+export default async function DuenoGastosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string }>;
+}) {
   const { supabase } = await requireProfile();
-
-  const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const params = await searchParams;
+  const month = params.month || currentMonthParam();
+  const { start: monthStart, end: monthEnd } = monthRange(month);
+  const thisMonth = currentMonthParam();
 
   const [{ data: categories }, { data: expenses }] = await Promise.all([
     supabase
@@ -37,7 +42,8 @@ export default async function DuenoGastosPage() {
     supabase
       .from("expenses")
       .select("*, expense_categories(name)")
-      .gte("created_at", monthStart)
+      .gte("expense_date", monthStart)
+      .lt("expense_date", monthEnd)
       .order("expense_date", { ascending: false })
       .returns<Expense[]>(),
   ]);
@@ -50,17 +56,36 @@ export default async function DuenoGastosPage() {
     byCategory.set(name, (byCategory.get(name) ?? 0) + Number(e.amount));
   }
 
+  const defaultExpenseDate = month === thisMonth ? todayLocal() : monthStart;
+  const prevMonth = shiftMonth(month, -1);
+  const nextMonth = shiftMonth(month, 1);
+
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Gastos</h1>
-        <p className="text-muted-foreground capitalize">{MONTH_LABEL.format(now)}</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Gastos</h1>
+          <p className="text-muted-foreground">{monthLabel(month)}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" render={<Link href={`/dueno/gastos?month=${prevMonth}`} />}>
+            ← Mes anterior
+          </Button>
+          {month !== thisMonth && (
+            <Button size="sm" variant="ghost" render={<Link href={`/dueno/gastos?month=${thisMonth}`} />}>
+              Hoy
+            </Button>
+          )}
+          <Button size="sm" variant="outline" render={<Link href={`/dueno/gastos?month=${nextMonth}`} />}>
+            Mes siguiente →
+          </Button>
+        </div>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>${total.toLocaleString("es-MX")}</CardTitle>
-          <CardDescription>Total de gastos este mes ({expenses?.length ?? 0} registros)</CardDescription>
+          <CardDescription>Total de gastos ({expenses?.length ?? 0} registros)</CardDescription>
         </CardHeader>
       </Card>
 
@@ -103,6 +128,9 @@ export default async function DuenoGastosPage() {
       <Card>
         <CardHeader>
           <CardTitle>Registrar gasto</CardTitle>
+          <CardDescription>
+            Puedes poner una fecha pasada para ir capturando gastos de meses anteriores.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form action={createExpense} className="flex flex-wrap items-end gap-3">
@@ -135,7 +163,7 @@ export default async function DuenoGastosPage() {
                 id="expense_date"
                 name="expense_date"
                 type="date"
-                defaultValue={todayLocal()}
+                defaultValue={defaultExpenseDate}
               />
             </div>
             <Button type="submit">Registrar gasto</Button>
@@ -146,7 +174,7 @@ export default async function DuenoGastosPage() {
       <Card>
         <CardHeader>
           <CardTitle>Gastos por categoría</CardTitle>
-          <CardDescription>Este mes</CardDescription>
+          <CardDescription>{monthLabel(month)}</CardDescription>
         </CardHeader>
         <CardContent>
           {byCategory.size > 0 ? (
@@ -167,14 +195,14 @@ export default async function DuenoGastosPage() {
               </TableBody>
             </Table>
           ) : (
-            <p className="text-muted-foreground">Sin gastos registrados este mes.</p>
+            <p className="text-muted-foreground">Sin gastos registrados en este mes.</p>
           )}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Gastos registrados este mes</CardTitle>
+          <CardTitle>Gastos registrados</CardTitle>
           <CardDescription>Borra un registro si fue una prueba o un error.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -209,7 +237,7 @@ export default async function DuenoGastosPage() {
               </TableBody>
             </Table>
           ) : (
-            <p className="text-muted-foreground">Sin registros este mes.</p>
+            <p className="text-muted-foreground">Sin registros en este mes.</p>
           )}
         </CardContent>
       </Card>
