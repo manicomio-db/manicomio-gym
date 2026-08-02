@@ -21,7 +21,7 @@ type SaleRow = {
   id: string;
   quantity: number;
   total: number;
-  created_at: string;
+  sale_date: string;
   products: { name: string } | null;
 };
 
@@ -68,10 +68,10 @@ export default async function DuenoIngresosPage({
       .returns<DayPassRow[]>(),
     supabase
       .from("sales")
-      .select("id, quantity, total, created_at, products(name)")
-      .gte("created_at", monthStart)
-      .lt("created_at", monthEnd)
-      .order("created_at", { ascending: false })
+      .select("id, quantity, total, sale_date, products(name)")
+      .gte("sale_date", monthStart)
+      .lt("sale_date", monthEnd)
+      .order("sale_date", { ascending: false })
       .returns<SaleRow[]>(),
     supabase
       .from("expenses")
@@ -122,7 +122,7 @@ export default async function DuenoIngresosPage({
       .filter((d) => inRange(d.created_at, w.start, w.end))
       .reduce((s, d) => s + Number(d.amount), 0);
     const wSales = (sales ?? [])
-      .filter((s) => inRange(s.created_at, w.start, w.end))
+      .filter((s) => inRange(s.sale_date, w.start, w.end))
       .reduce((s, sale) => s + Number(sale.total), 0);
     const wExpenses = (expenses ?? [])
       .filter((e) => inRange(e.expense_date, w.start, w.end))
@@ -464,7 +464,7 @@ export default async function DuenoIngresosPage({
                         <TableCell>{s.products?.name ?? "—"}</TableCell>
                         <TableCell>{s.quantity}</TableCell>
                         <TableCell>{money(Number(s.total))}</TableCell>
-                        <TableCell>{new Date(s.created_at).toLocaleDateString("es-MX")}</TableCell>
+                        <TableCell>{s.sale_date}</TableCell>
                         <TableCell>
                           <form action={deleteSale}>
                             <input type="hidden" name="id" value={s.id} />

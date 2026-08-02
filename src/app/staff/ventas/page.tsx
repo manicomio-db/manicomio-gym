@@ -1,4 +1,5 @@
 import { requireProfile } from "@/lib/supabase/session";
+import { todayLocal } from "@/lib/date";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -22,6 +23,7 @@ export default async function StaffVentasPage() {
     supabase
       .from("sales")
       .select("*, products(name)")
+      .order("sale_date", { ascending: false })
       .order("created_at", { ascending: false })
       .limit(20)
       .returns<(Sale & { products: { name: string } | null })[]>(),
@@ -37,6 +39,9 @@ export default async function StaffVentasPage() {
       <Card>
         <CardHeader>
           <CardTitle>Registrar venta</CardTitle>
+          <CardDescription>
+            Puedes poner una fecha pasada para ir capturando ventas de días anteriores.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form action={registerSale} className="flex flex-wrap items-end gap-3">
@@ -58,6 +63,10 @@ export default async function StaffVentasPage() {
             <div className="flex flex-col gap-2">
               <Label htmlFor="quantity">Cantidad</Label>
               <Input id="quantity" name="quantity" type="number" min={1} defaultValue={1} className="w-24" />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="sale_date">Fecha</Label>
+              <Input id="sale_date" name="sale_date" type="date" defaultValue={todayLocal()} className="w-40" />
             </div>
             <Button type="submit">Registrar venta</Button>
           </form>
@@ -86,7 +95,7 @@ export default async function StaffVentasPage() {
                     <TableCell>{s.products?.name ?? "—"}</TableCell>
                     <TableCell>{s.quantity}</TableCell>
                     <TableCell>${s.total.toLocaleString("es-MX")}</TableCell>
-                    <TableCell>{new Date(s.created_at).toLocaleString("es-MX")}</TableCell>
+                    <TableCell>{s.sale_date}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

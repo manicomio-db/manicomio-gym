@@ -60,6 +60,7 @@ export async function registerSale(formData: FormData) {
 
   const productId = String(formData.get("product_id") ?? "");
   const quantity = Number(formData.get("quantity") ?? 1);
+  const saleDate = String(formData.get("sale_date") ?? "") || todayLocal();
 
   const { data: product } = await supabase
     .from("products")
@@ -76,6 +77,7 @@ export async function registerSale(formData: FormData) {
     staff_id: profile.id,
     quantity,
     total,
+    sale_date: saleDate,
   });
 
   await supabase
@@ -84,6 +86,7 @@ export async function registerSale(formData: FormData) {
     .eq("id", productId);
 
   revalidatePath("/staff/ventas");
+  revalidatePath("/dueno/ingresos");
 }
 
 export async function updateMembership(formData: FormData) {

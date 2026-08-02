@@ -96,6 +96,7 @@ export type Sale = {
   socio_id: string | null;
   quantity: number;
   total: number;
+  sale_date: string;
   created_at: string;
   products?: Product | null;
 };

@@ -133,8 +133,14 @@ create table if not exists public.sales (
   socio_id uuid references public.profiles (id),
   quantity integer not null check (quantity > 0),
   total numeric(10, 2) not null,
+  sale_date date not null default current_date,
   created_at timestamptz not null default now()
 );
+
+alter table public.sales add column if not exists sale_date date;
+update public.sales set sale_date = created_at::date where sale_date is null;
+alter table public.sales alter column sale_date set default current_date;
+alter table public.sales alter column sale_date set not null;
 
 -- Permitir borrar un producto aunque ya tenga ventas registradas (la venta
 -- conserva su historial, solo pierde la referencia al producto eliminado).
