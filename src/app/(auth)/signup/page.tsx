@@ -33,8 +33,16 @@ export default function SignupPage() {
               <Input id="phone" name="phone" type="tel" autoComplete="tel" />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="email">Correo</Label>
-              <Input id="email" name="email" type="email" required autoComplete="email" />
+              <Label htmlFor="username">Nombre de usuario</Label>
+              <Input
+                id="username"
+                name="username"
+                required
+                minLength={3}
+                maxLength={30}
+                autoComplete="username"
+                placeholder="Sin espacios, ej: juanperez"
+              />
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="password">Contraseña</Label>

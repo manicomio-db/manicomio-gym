@@ -40,6 +40,11 @@ export default async function SocioHomePage() {
           Tu número de socio es <strong>#{profile.member_number}</strong> — dalo en recepción para
           registrar tu entrada.
         </p>
+        {profile.username && (
+          <p className="text-muted-foreground">
+            Tu usuario para entrar es <strong>{profile.username}</strong>.
+          </p>
+        )}
       </div>
 
       <Card>

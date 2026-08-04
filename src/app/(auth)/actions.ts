@@ -5,9 +5,23 @@ import { redirect } from "next/navigation";
 
 export type AuthState = { error: string | null };
 
+const USERNAME_DOMAIN = "manicomio.local";
+
+function normalizeUsername(raw: string) {
+  return raw.trim().toLowerCase().replace(/\s+/g, "");
+}
+
+function usernameToEmail(username: string) {
+  return `${username}@${USERNAME_DOMAIN}`;
+}
+
 export async function login(_prevState: AuthState, formData: FormData): Promise<AuthState> {
-  const email = String(formData.get("email") ?? "");
+  const identifier = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+
+  const email = identifier.includes("@")
+    ? identifier
+    : usernameToEmail(normalizeUsername(identifier));
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -15,10 +29,10 @@ export async function login(_prevState: AuthState, formData: FormData): Promise<
   if (error) {
     if (error.message.toLowerCase().includes("email not confirmed")) {
       return {
-        error: "Tu correo aún no está confirmado. Revisa tu bandeja (y spam) y haz clic en el enlace de confirmación.",
+        error: "Tu cuenta aún no está confirmada. Pide ayuda a tu instructor.",
       };
     }
-    return { error: "Correo o contraseña incorrectos." };
+    return { error: "Usuario/correo o contraseña incorrectos." };
   }
 
   const {
@@ -36,23 +50,41 @@ export async function login(_prevState: AuthState, formData: FormData): Promise<
 }
 
 export async function signup(_prevState: AuthState, formData: FormData): Promise<AuthState> {
-  const email = String(formData.get("email") ?? "");
+  const username = normalizeUsername(String(formData.get("username") ?? ""));
   const password = String(formData.get("password") ?? "");
   const fullName = String(formData.get("full_name") ?? "");
   const phone = String(formData.get("phone") ?? "");
+
+  if (!/^[a-z0-9._-]{3,30}$/.test(username)) {
+    return {
+      error: "El usuario debe tener entre 3 y 30 caracteres (letras, números, punto o guion, sin espacios).",
+    };
+  }
 
   if (password.length < 6) {
     return { error: "La contraseña debe tener al menos 6 caracteres." };
   }
 
   const supabase = await createClient();
+
+  const { data: available } = await supabase.rpc("username_available", {
+    check_username: username,
+  });
+
+  if (available === false) {
+    return { error: "Ese nombre de usuario ya está en uso. Elige otro." };
+  }
+
   const { data, error } = await supabase.auth.signUp({
-    email,
+    email: usernameToEmail(username),
     password,
-    options: { data: { full_name: fullName, phone } },
+    options: { data: { full_name: fullName, phone, username } },
   });
 
   if (error) {
+    if (error.message.toLowerCase().includes("already registered")) {
+      return { error: "Ese nombre de usuario ya está en uso. Elige otro." };
+    }
     return { error: error.message };
   }
 

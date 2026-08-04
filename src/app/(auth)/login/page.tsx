@@ -39,8 +39,8 @@ export default function LoginPage() {
           </Suspense>
           <form action={formAction} className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="email">Correo</Label>
-              <Input id="email" name="email" type="email" required autoComplete="email" />
+              <Label htmlFor="email">Usuario o correo</Label>
+              <Input id="email" name="email" type="text" required autoComplete="username" />
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="password">Contraseña</Label>
@@ -60,7 +60,8 @@ export default function LoginPage() {
           <p className="mt-4 text-center text-sm text-muted-foreground">
             <Link href="/forgot-password" className="underline">
               ¿Olvidaste tu contraseña?
-            </Link>
+            </Link>{" "}
+            (solo si te registraste con correo — si eres socio, pide ayuda a tu instructor)
           </p>
           <p className="mt-4 text-center text-sm text-muted-foreground">
             ¿Eres socio nuevo?{" "}

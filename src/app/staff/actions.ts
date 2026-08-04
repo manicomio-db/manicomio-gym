@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/supabase/session";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { todayLocal } from "@/lib/date";
 import type { RoutineContent } from "@/lib/types";
 
@@ -195,4 +196,33 @@ export async function registerCheckIn(
       endDate: membership?.end_date ?? null,
     },
   };
+}
+
+export type ResetPasswordState = { error: string | null; success: boolean };
+
+export async function resetSocioPassword(
+  _prev: ResetPasswordState,
+  formData: FormData
+): Promise<ResetPasswordState> {
+  await requireStaff();
+
+  const socioId = String(formData.get("socio_id") ?? "");
+  const newPassword = String(formData.get("new_password") ?? "");
+
+  if (!socioId) return { error: "Falta el socio.", success: false };
+  if (newPassword.length < 6) {
+    return { error: "La contraseña debe tener al menos 6 caracteres.", success: false };
+  }
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return { error: "Falta configurar SUPABASE_SERVICE_ROLE_KEY en el servidor.", success: false };
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin.auth.admin.updateUserById(socioId, { password: newPassword });
+
+  if (error) {
+    return { error: "No se pudo cambiar la contraseña.", success: false };
+  }
+
+  return { error: null, success: true };
 }

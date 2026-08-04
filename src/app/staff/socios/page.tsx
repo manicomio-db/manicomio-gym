@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Membership, MembershipPlan, Profile } from "@/lib/types";
 import { MembershipDialog } from "./membership-dialog";
+import { ResetPasswordDialog } from "./reset-password-dialog";
 import { deleteSocio, deleteMembership } from "@/app/dueno/actions";
 
 export default async function StaffSociosPage() {
@@ -44,7 +45,9 @@ export default async function StaffSociosPage() {
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
                   <CardTitle>{socio.full_name ?? "Sin nombre"}</CardTitle>
-                  <p className="text-sm text-muted-foreground">{socio.phone}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {socio.username ? `@${socio.username}` : socio.phone}
+                  </p>
                 </div>
                 <Badge variant={expired ? "destructive" : "default"}>
                   {expired ? "Vencida" : "Activa"}
@@ -64,6 +67,7 @@ export default async function StaffSociosPage() {
                     currentPlanId={membership?.plan_id ?? null}
                     currentEndDate={membership?.end_date ?? null}
                   />
+                  <ResetPasswordDialog socioId={socio.id} socioNombre={socio.full_name ?? "Socio"} />
                   {isDueno && membership && (
                     <form action={deleteMembership}>
                       <input type="hidden" name="id" value={membership.id} />

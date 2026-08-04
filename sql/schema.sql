@@ -14,11 +14,21 @@ create table if not exists public.profiles (
   role text not null default 'socio' check (role in ('socio', 'staff', 'dueno')),
   full_name text,
   phone text,
+  username text,
   member_number integer,
   created_at timestamptz not null default now()
 );
 
 alter table public.profiles add column if not exists member_number integer;
+alter table public.profiles add column if not exists username text;
+
+do $$
+begin
+  alter table public.profiles add constraint profiles_username_key unique (username);
+exception
+  when duplicate_object then null;
+  when duplicate_table then null;
+end $$;
 
 create sequence if not exists public.member_number_seq;
 
@@ -233,6 +243,20 @@ as $$
   select coalesce((select role = 'dueno' from public.profiles where id = auth.uid()), false);
 $$;
 
+-- Verifica si un nombre de usuario está libre, sin exponer la tabla profiles
+-- a usuarios anónimos (se usa en el formulario de registro público).
+create or replace function public.username_available(check_username text)
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select not exists(select 1 from public.profiles where username = check_username);
+$$;
+
+grant execute on function public.username_available(text) to anon, authenticated;
+
 -- ----------------------------------------------------------------------------
 -- Trigger: crear el profile automáticamente al registrarse en auth.users
 -- El rol viene de raw_user_meta_data->>'role' (solo 'socio' se permite desde
@@ -246,12 +270,13 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, role, full_name, phone)
+  insert into public.profiles (id, role, full_name, phone, username)
   values (
     new.id,
     'socio',
     new.raw_user_meta_data ->> 'full_name',
-    new.raw_user_meta_data ->> 'phone'
+    new.raw_user_meta_data ->> 'phone',
+    new.raw_user_meta_data ->> 'username'
   );
   return new;
 end;
