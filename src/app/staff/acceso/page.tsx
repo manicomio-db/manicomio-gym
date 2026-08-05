@@ -38,7 +38,7 @@ export default async function StaffAccesoPage({
 
   let checkInsQuery = supabase
     .from("check_ins")
-    .select("*, profiles!inner(full_name, member_number)")
+    .select("*, profiles!check_ins_socio_id_fkey(full_name, member_number)")
     .gte("created_at", from)
     .lt("created_at", toExclusiveStr)
     .order("created_at", { ascending: false })
