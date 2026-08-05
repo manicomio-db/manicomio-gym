@@ -23,7 +23,7 @@ export async function saveRoutine(input: {
 }) {
   const { profile, supabase } = await requireStaff();
 
-  await supabase.from("routines").insert({
+  const { error: insertError } = await supabase.from("routines").insert({
     socio_id: input.socioId,
     staff_id: profile.id,
     request_id: input.requestId,
@@ -32,11 +32,21 @@ export async function saveRoutine(input: {
     source: input.source,
   });
 
+  if (insertError) {
+    console.error("saveRoutine insert error:", insertError);
+    throw new Error(insertError.message);
+  }
+
   if (input.requestId) {
-    await supabase
+    const { error: updateError } = await supabase
       .from("routine_requests")
       .update({ status: "completado" })
       .eq("id", input.requestId);
+
+    if (updateError) {
+      console.error("saveRoutine status update error:", updateError);
+      throw new Error(updateError.message);
+    }
   }
 
   revalidatePath("/staff/rutinas");

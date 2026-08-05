@@ -132,8 +132,9 @@ export function RoutineComposer({ request }: { request: RequestInfo }) {
         source,
       });
       toast.success("Rutina asignada al socio.");
-    } catch {
-      toast.error("No se pudo guardar la rutina.");
+    } catch (err) {
+      console.error("guardar routine error:", err);
+      toast.error(err instanceof Error ? `No se pudo guardar: ${err.message}` : "No se pudo guardar la rutina.");
     } finally {
       setSaving(false);
     }
