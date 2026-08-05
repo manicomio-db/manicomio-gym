@@ -98,17 +98,26 @@ export default async function StaffAccesoPage({
                   <TableRow>
                     <TableHead>Socio</TableHead>
                     <TableHead>Número</TableHead>
-                    <TableHead>Fecha y hora</TableHead>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead>Hora</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {checkIns.map((c) => (
-                    <TableRow key={c.id}>
-                      <TableCell>{c.profiles?.full_name ?? "—"}</TableCell>
-                      <TableCell>#{c.profiles?.member_number ?? "—"}</TableCell>
-                      <TableCell>{new Date(c.created_at).toLocaleString("es-MX")}</TableCell>
-                    </TableRow>
-                  ))}
+                  {checkIns.map((c) => {
+                    const d = new Date(c.created_at);
+                    return (
+                      <TableRow key={c.id}>
+                        <TableCell>{c.profiles?.full_name ?? "—"}</TableCell>
+                        <TableCell>#{c.profiles?.member_number ?? "—"}</TableCell>
+                        <TableCell>
+                          {d.toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" })}
+                        </TableCell>
+                        <TableCell>
+                          {d.toLocaleTimeString("es-MX", { hour: "numeric", minute: "2-digit", hour12: true })}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
               {checkIns.length === HISTORY_LIMIT && (
