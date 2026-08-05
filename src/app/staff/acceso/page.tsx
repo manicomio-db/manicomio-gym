@@ -1,4 +1,5 @@
 import { requireProfile } from "@/lib/supabase/session";
+import { todayLocal } from "@/lib/date";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -8,16 +9,49 @@ import type { CheckIn, DayPass } from "@/lib/types";
 import { CheckInForm } from "./check-in-form";
 import { registerDayPass } from "../actions";
 
-export default async function StaffAccesoPage() {
+const HISTORY_LIMIT = 300;
+
+function daysAgo(days: number): string {
+  const d = new Date(todayLocal() + "T00:00:00");
+  d.setDate(d.getDate() - days);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+export default async function StaffAccesoPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string; to?: string; q?: string }>;
+}) {
   const { supabase } = await requireProfile();
+  const params = await searchParams;
+
+  const from = params.from || daysAgo(6); // últimos 7 días por defecto (hoy incluido)
+  const to = params.to || todayLocal();
+  const q = params.q?.trim() ?? "";
+  // límite exclusivo: el día siguiente a "to", a medianoche
+  const toExclusive = new Date(to + "T00:00:00");
+  toExclusive.setDate(toExclusive.getDate() + 1);
+  const toExclusiveStr = toExclusive.toISOString().slice(0, 10);
+
+  let checkInsQuery = supabase
+    .from("check_ins")
+    .select("*, profiles!inner(full_name, member_number)")
+    .gte("created_at", from)
+    .lt("created_at", toExclusiveStr)
+    .order("created_at", { ascending: false })
+    .limit(HISTORY_LIMIT);
+
+  if (q) {
+    checkInsQuery = checkInsQuery.ilike("profiles.full_name", `%${q}%`);
+  }
 
   const [{ data: checkIns }, { data: dayPasses }] = await Promise.all([
-    supabase
-      .from("check_ins")
-      .select("*, profiles(full_name, member_number)")
-      .order("created_at", { ascending: false })
-      .limit(30)
-      .returns<(CheckIn & { profiles: { full_name: string | null; member_number: number | null } | null })[]>(),
+    checkInsQuery.returns<
+      (CheckIn & { profiles: { full_name: string | null; member_number: number | null } | null })[]
+    >(),
     supabase
       .from("day_passes")
       .select("*")
@@ -37,31 +71,55 @@ export default async function StaffAccesoPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Entradas recientes</CardTitle>
-          <CardDescription>Últimas 30</CardDescription>
+          <CardTitle>Historial de entradas</CardTitle>
+          <CardDescription>Filtra por fecha y, si quieres, por nombre del socio.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col gap-4">
+          <form method="get" className="flex flex-wrap items-end gap-3">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="from">Desde</Label>
+              <Input id="from" name="from" type="date" defaultValue={from} className="w-40" />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="to">Hasta</Label>
+              <Input id="to" name="to" type="date" defaultValue={to} className="w-40" />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="q">Nombre del socio</Label>
+              <Input id="q" name="q" defaultValue={q} placeholder="Opcional" className="w-48" />
+            </div>
+            <Button type="submit">Filtrar</Button>
+          </form>
+
           {checkIns && checkIns.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Socio</TableHead>
-                  <TableHead>Número</TableHead>
-                  <TableHead>Hora</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {checkIns.map((c) => (
-                  <TableRow key={c.id}>
-                    <TableCell>{c.profiles?.full_name ?? "—"}</TableCell>
-                    <TableCell>#{c.profiles?.member_number ?? "—"}</TableCell>
-                    <TableCell>{new Date(c.created_at).toLocaleString("es-MX")}</TableCell>
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Socio</TableHead>
+                    <TableHead>Número</TableHead>
+                    <TableHead>Fecha y hora</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {checkIns.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell>{c.profiles?.full_name ?? "—"}</TableCell>
+                      <TableCell>#{c.profiles?.member_number ?? "—"}</TableCell>
+                      <TableCell>{new Date(c.created_at).toLocaleString("es-MX")}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {checkIns.length === HISTORY_LIMIT && (
+                <p className="text-xs text-muted-foreground">
+                  Mostrando los primeros {HISTORY_LIMIT} resultados — acota el rango de fechas para ver
+                  menos entradas a la vez.
+                </p>
+              )}
+            </>
           ) : (
-            <p className="text-muted-foreground">Aún no hay entradas registradas.</p>
+            <p className="text-muted-foreground">No hay entradas en ese rango de fechas.</p>
           )}
         </CardContent>
       </Card>
