@@ -19,8 +19,20 @@ export default async function LandingPage() {
   const info = Object.fromEntries((infoRows ?? []).map((r) => [r.key, r.value ?? ""]));
 
   return (
-    <div className="flex flex-1 flex-col">
-      <header className="flex items-center justify-between border-b border-primary/20 px-6 py-3">
+    <div className="relative flex flex-1 flex-col">
+      <div className="fixed inset-0 -z-10">
+        <Image
+          src="/landing-bg.png"
+          alt=""
+          fill
+          sizes="100vw"
+          className="object-cover object-top"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/85 to-black/95" />
+      </div>
+
+      <header className="flex items-center justify-between border-b border-primary/20 bg-black/40 px-6 py-3 backdrop-blur-sm">
         <Image src="/logo.png" alt={info.nombre_gimnasio || "Manicomio Gym"} width={1320} height={1283} className="w-14" priority />
         <nav className="flex items-center gap-2">
           <Button variant="ghost" nativeButton={false} render={<Link href="/login" />}>
@@ -32,7 +44,7 @@ export default async function LandingPage() {
         </nav>
       </header>
 
-      <section className="border-b border-primary/20 bg-card/40 px-6 py-16 text-center">
+      <section className="border-b border-primary/20 px-6 py-16 text-center">
         <Image
           src="/logo.png"
           alt={info.nombre_gimnasio || "Manicomio Gym"}
@@ -79,7 +91,7 @@ export default async function LandingPage() {
         )}
       </section>
 
-      <section className="border-t bg-muted/30 px-6 py-16">
+      <section className="border-t border-primary/20 px-6 py-16">
         <h2 className="mb-6 text-2xl font-bold">Clases</h2>
         {classes && classes.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
