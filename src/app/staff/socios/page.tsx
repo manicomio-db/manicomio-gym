@@ -3,17 +3,35 @@ import { todayLocal } from "@/lib/date";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import type { Membership, MembershipPlan, Profile } from "@/lib/types";
 import { MembershipDialog } from "./membership-dialog";
 import { ResetPasswordDialog } from "./reset-password-dialog";
 import { deleteSocio, deleteMembership } from "@/app/dueno/actions";
 
-export default async function StaffSociosPage() {
+export default async function StaffSociosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
   const { profile, supabase } = await requireProfile();
   const isDueno = profile.role === "dueno";
+  const params = await searchParams;
+  const q = params.q?.trim() ?? "";
+
+  let sociosQuery = supabase.from("profiles").select("*").eq("role", "socio").order("full_name");
+
+  if (q) {
+    const asNumber = Number(q);
+    sociosQuery =
+      !Number.isNaN(asNumber) && q !== ""
+        ? sociosQuery.eq("member_number", asNumber)
+        : sociosQuery.ilike("full_name", `%${q}%`);
+  }
 
   const [{ data: socios }, { data: memberships }, { data: plans }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("role", "socio").order("full_name").returns<Profile[]>(),
+    sociosQuery.returns<Profile[]>(),
     supabase
       .from("memberships")
       .select("*, membership_plans(*)")
@@ -36,6 +54,19 @@ export default async function StaffSociosPage() {
         <p className="text-muted-foreground">Consulta y actualiza el vencimiento de membresías.</p>
       </div>
 
+      <form method="get" className="flex flex-wrap items-end gap-3">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="q">Buscar por nombre o número de socio</Label>
+          <Input id="q" name="q" defaultValue={q} placeholder="Ej: Rosita o 12" className="w-64" />
+        </div>
+        <Button type="submit">Buscar</Button>
+        {q && (
+          <Button variant="ghost" render={<a href="/staff/socios" />}>
+            Limpiar
+          </Button>
+        )}
+      </form>
+
       <div className="grid gap-4">
         {(socios ?? []).map((socio) => {
           const membership = latestBySocio.get(socio.id) ?? null;
@@ -44,7 +75,12 @@ export default async function StaffSociosPage() {
             <Card key={socio.id}>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>{socio.full_name ?? "Sin nombre"}</CardTitle>
+                  <CardTitle>
+                    {socio.full_name ?? "Sin nombre"}{" "}
+                    <span className="text-sm font-normal text-muted-foreground">
+                      #{socio.member_number}
+                    </span>
+                  </CardTitle>
                   <p className="text-sm text-muted-foreground">
                     {socio.username ? `@${socio.username}` : socio.phone}
                   </p>
@@ -90,7 +126,9 @@ export default async function StaffSociosPage() {
           );
         })}
         {(!socios || socios.length === 0) && (
-          <p className="text-muted-foreground">Aún no hay socios registrados.</p>
+          <p className="text-muted-foreground">
+            {q ? "No se encontró ningún socio con esa búsqueda." : "Aún no hay socios registrados."}
+          </p>
         )}
       </div>
     </div>
