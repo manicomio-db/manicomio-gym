@@ -219,7 +219,7 @@ export default async function DuenoIngresosPage({
         </Card>
         <Card className="neon-border">
           <CardHeader>
-            <CardTitle className={cn(netProfit >= 0 ? "text-primary" : "text-destructive")}>
+            <CardTitle className={cn(netProfit >= 0 ? "text-green-400" : "text-destructive")}>
               {money(netProfit)}
             </CardTitle>
             <CardDescription>Utilidad neta (ingresos − gastos)</CardDescription>
@@ -255,7 +255,7 @@ export default async function DuenoIngresosPage({
                     <TableCell>{money(w.wSales)}</TableCell>
                     <TableCell>{money(w.wIncome)}</TableCell>
                     <TableCell className="text-destructive">-{money(w.wExpenses)}</TableCell>
-                    <TableCell className={w.wNet >= 0 ? "text-primary" : "text-destructive"}>
+                    <TableCell className={w.wNet >= 0 ? "text-green-400" : "text-destructive"}>
                       {money(w.wNet)}
                     </TableCell>
                   </TableRow>
@@ -348,7 +348,7 @@ export default async function DuenoIngresosPage({
                     {Array.from(byCategory.entries()).map(([name, amount]) => (
                       <TableRow key={name}>
                         <TableCell>{name}</TableCell>
-                        <TableCell>{money(amount)}</TableCell>
+                        <TableCell className="text-destructive">{money(amount)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
