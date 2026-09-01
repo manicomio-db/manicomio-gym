@@ -119,7 +119,9 @@ export default async function StaffSociosPage({
                     </span>
                   </CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    {socio.username ? `@${socio.username}` : socio.phone}
+                    {[socio.username && `@${socio.username}`, socio.phone]
+                      .filter(Boolean)
+                      .join(" · ") || "Sin datos de contacto"}
                   </p>
                 </div>
                 <Badge variant={expired ? "destructive" : "default"}>
