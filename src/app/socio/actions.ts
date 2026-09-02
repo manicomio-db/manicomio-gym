@@ -47,3 +47,50 @@ export async function requestRoutine(
   revalidatePath("/socio/rutina");
   return { error: null, success: true };
 }
+
+export async function uploadPaymentProof(formData: FormData) {
+  const { profile, supabase } = await requireProfile();
+
+  const note = String(formData.get("note") ?? "").trim();
+  const file = formData.get("file");
+
+  if (!(file instanceof File) || file.size === 0) return;
+
+  const ext = file.name.split(".").pop() || "jpg";
+  const path = `${profile.id}/${crypto.randomUUID()}.${ext}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("payment-proofs")
+    .upload(path, file, { contentType: file.type || undefined });
+
+  if (uploadError) {
+    console.error("uploadPaymentProof error:", uploadError);
+    throw new Error(uploadError.message);
+  }
+
+  await supabase.from("payment_proofs").insert({
+    socio_id: profile.id,
+    file_path: path,
+    note: note || null,
+  });
+
+  revalidatePath("/socio/pago");
+  revalidatePath("/staff/comprobantes");
+}
+
+export async function sendMessage(formData: FormData) {
+  const { profile, supabase } = await requireProfile();
+  const body = String(formData.get("body") ?? "").trim();
+  if (!body) return;
+
+  await supabase.from("messages").insert({
+    socio_id: profile.id,
+    sender_id: profile.id,
+    sender_role: "socio",
+    body,
+  });
+
+  revalidatePath("/socio/mensajes");
+  revalidatePath("/staff/mensajes");
+  revalidatePath(`/staff/mensajes/${profile.id}`);
+}

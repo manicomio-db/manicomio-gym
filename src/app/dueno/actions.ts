@@ -124,9 +124,15 @@ export async function upsertGymInfo(formData: FormData) {
     { key: "horario_general", value: String(formData.get("horario_general") ?? "") },
     { key: "contacto_telefono", value: String(formData.get("contacto_telefono") ?? "") },
     { key: "contacto_direccion", value: String(formData.get("contacto_direccion") ?? "") },
+    { key: "banco_nombre", value: String(formData.get("banco_nombre") ?? "") },
+    { key: "banco_titular", value: String(formData.get("banco_titular") ?? "") },
+    { key: "banco_cuenta", value: String(formData.get("banco_cuenta") ?? "") },
+    { key: "banco_clabe", value: String(formData.get("banco_clabe") ?? "") },
+    { key: "banco_notas", value: String(formData.get("banco_notas") ?? "") },
   ];
   await supabase.from("gym_info").upsert(entries);
   revalidatePath("/dueno/contenido");
+  revalidatePath("/socio/pago");
   revalidatePath("/");
 }
 

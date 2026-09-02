@@ -14,6 +14,8 @@ const NAV: Record<Role, NavItem[]> = {
     { href: "/socio", label: "Mi cuenta" },
     { href: "/socio/rutina", label: "Mi rutina" },
     { href: "/socio/tienda", label: "Tienda" },
+    { href: "/socio/pago", label: "Mi pago" },
+    { href: "/socio/mensajes", label: "Mensajes" },
   ],
   staff: [
     { href: "/staff", label: "Panel" },
@@ -21,6 +23,8 @@ const NAV: Record<Role, NavItem[]> = {
     { href: "/staff/rutinas", label: "Rutinas" },
     { href: "/staff/ventas", label: "Ventas" },
     { href: "/staff/socios", label: "Socios" },
+    { href: "/staff/comprobantes", label: "Comprobantes" },
+    { href: "/staff/mensajes", label: "Mensajes" },
   ],
   dueno: [
     { href: "/dueno", label: "Dashboard" },
@@ -30,6 +34,8 @@ const NAV: Record<Role, NavItem[]> = {
     { href: "/staff/rutinas", label: "Rutinas" },
     { href: "/staff/ventas", label: "Ventas" },
     { href: "/staff/socios", label: "Socios" },
+    { href: "/staff/comprobantes", label: "Comprobantes" },
+    { href: "/staff/mensajes", label: "Mensajes" },
     { href: "/dueno/planes", label: "Planes" },
     { href: "/dueno/clases", label: "Clases" },
     { href: "/dueno/tienda", label: "Tienda" },

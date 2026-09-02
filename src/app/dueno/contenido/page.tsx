@@ -45,6 +45,42 @@ export default async function DuenoContenidoPage() {
               <Label htmlFor="contacto_direccion">Dirección</Label>
               <Input id="contacto_direccion" name="contacto_direccion" defaultValue={info.contacto_direccion} />
             </div>
+
+            <div className="mt-2 border-t pt-4">
+              <h3 className="mb-3 font-semibold">Datos para transferencia bancaria</h3>
+              <p className="mb-3 text-sm text-muted-foreground">
+                Se muestran a los socios en &quot;Mi pago&quot; para que puedan transferir y subir su
+                comprobante.
+              </p>
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="banco_nombre">Banco</Label>
+                  <Input id="banco_nombre" name="banco_nombre" placeholder="Ej: BBVA" defaultValue={info.banco_nombre} />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="banco_titular">Titular de la cuenta</Label>
+                  <Input id="banco_titular" name="banco_titular" defaultValue={info.banco_titular} />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="banco_cuenta">Número de cuenta / tarjeta</Label>
+                  <Input id="banco_cuenta" name="banco_cuenta" defaultValue={info.banco_cuenta} />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="banco_clabe">CLABE interbancaria</Label>
+                  <Input id="banco_clabe" name="banco_clabe" defaultValue={info.banco_clabe} />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="banco_notas">Notas adicionales</Label>
+                  <Textarea
+                    id="banco_notas"
+                    name="banco_notas"
+                    placeholder="Ej: manda tu comprobante el mismo día del pago"
+                    defaultValue={info.banco_notas}
+                  />
+                </div>
+              </div>
+            </div>
+
             <Button type="submit" className="w-fit">
               Guardar cambios
             </Button>

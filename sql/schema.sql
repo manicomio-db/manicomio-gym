@@ -171,6 +171,26 @@ create table if not exists public.check_ins (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.payment_proofs (
+  id uuid primary key default gen_random_uuid(),
+  socio_id uuid not null references public.profiles (id) on delete cascade,
+  file_path text not null,
+  note text,
+  status text not null default 'pendiente' check (status in ('pendiente', 'revisado')),
+  reviewed_by uuid references public.profiles (id),
+  reviewed_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.messages (
+  id uuid primary key default gen_random_uuid(),
+  socio_id uuid not null references public.profiles (id) on delete cascade,
+  sender_id uuid not null references public.profiles (id),
+  sender_role text not null check (sender_role in ('socio', 'staff', 'dueno')),
+  body text not null,
+  created_at timestamptz not null default now()
+);
+
 -- ----------------------------------------------------------------------------
 -- Deduplicar filas de corridas anteriores del seed y asegurar nombres únicos
 -- en los catálogos (idempotente: seguro correrlo las veces que sea necesario).
@@ -304,6 +324,8 @@ alter table public.check_ins enable row level security;
 alter table public.day_passes enable row level security;
 alter table public.expense_categories enable row level security;
 alter table public.expenses enable row level security;
+alter table public.payment_proofs enable row level security;
+alter table public.messages enable row level security;
 
 -- profiles ---------------------------------------------------------------
 drop policy if exists "profiles_select_own_or_staff" on public.profiles;
@@ -445,6 +467,42 @@ drop policy if exists "expenses_all_dueno" on public.expenses;
 create policy "expenses_all_dueno" on public.expenses
   for all using (public.is_dueno()) with check (public.is_dueno());
 
+-- payment_proofs (comprobantes de transferencia) --------------------------
+drop policy if exists "payment_proofs_select_own_or_staff" on public.payment_proofs;
+create policy "payment_proofs_select_own_or_staff" on public.payment_proofs
+  for select using (socio_id = auth.uid() or public.is_staff_or_dueno());
+
+drop policy if exists "payment_proofs_insert_own" on public.payment_proofs;
+create policy "payment_proofs_insert_own" on public.payment_proofs
+  for insert with check (socio_id = auth.uid());
+
+drop policy if exists "payment_proofs_update_staff" on public.payment_proofs;
+create policy "payment_proofs_update_staff" on public.payment_proofs
+  for update using (public.is_staff_or_dueno());
+
+drop policy if exists "payment_proofs_delete_dueno" on public.payment_proofs;
+create policy "payment_proofs_delete_dueno" on public.payment_proofs
+  for delete using (public.is_dueno());
+
+-- messages (buzón socio <-> staff) -----------------------------------------
+drop policy if exists "messages_select_own_or_staff" on public.messages;
+create policy "messages_select_own_or_staff" on public.messages
+  for select using (socio_id = auth.uid() or public.is_staff_or_dueno());
+
+drop policy if exists "messages_insert" on public.messages;
+create policy "messages_insert" on public.messages
+  for insert with check (
+    sender_id = auth.uid()
+    and (
+      (socio_id = auth.uid() and sender_role = 'socio')
+      or (public.is_staff_or_dueno() and sender_role in ('staff', 'dueno'))
+    )
+  );
+
+drop policy if exists "messages_delete_dueno" on public.messages;
+create policy "messages_delete_dueno" on public.messages
+  for delete using (public.is_dueno());
+
 -- ----------------------------------------------------------------------------
 -- Storage: bucket público para fotos de productos
 -- ----------------------------------------------------------------------------
@@ -468,3 +526,30 @@ create policy "product_images_staff_update" on storage.objects
 drop policy if exists "product_images_staff_delete" on storage.objects;
 create policy "product_images_staff_delete" on storage.objects
   for delete using (bucket_id = 'product-images' and public.is_staff_or_dueno());
+
+-- ----------------------------------------------------------------------------
+-- Storage: bucket privado para comprobantes de pago
+-- Cada archivo se guarda como "{socio_id}/archivo.ext" para poder restringir
+-- el acceso: el socio solo ve los suyos, staff/dueño ven todos.
+-- ----------------------------------------------------------------------------
+
+insert into storage.buckets (id, name, public)
+values ('payment-proofs', 'payment-proofs', false)
+on conflict (id) do nothing;
+
+drop policy if exists "payment_proofs_storage_insert_own" on storage.objects;
+create policy "payment_proofs_storage_insert_own" on storage.objects
+  for insert with check (
+    bucket_id = 'payment-proofs' and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "payment_proofs_storage_select_own_or_staff" on storage.objects;
+create policy "payment_proofs_storage_select_own_or_staff" on storage.objects
+  for select using (
+    bucket_id = 'payment-proofs'
+    and ((storage.foldername(name))[1] = auth.uid()::text or public.is_staff_or_dueno())
+  );
+
+drop policy if exists "payment_proofs_storage_delete_staff" on storage.objects;
+create policy "payment_proofs_storage_delete_staff" on storage.objects
+  for delete using (bucket_id = 'payment-proofs' and public.is_staff_or_dueno());

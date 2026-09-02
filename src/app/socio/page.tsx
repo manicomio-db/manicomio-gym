@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { requireProfile } from "@/lib/supabase/session";
 import { todayLocal } from "@/lib/date";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { Membership } from "@/lib/types";
 
 function formatDate(d: string) {
@@ -31,6 +33,7 @@ export default async function SocioHomePage() {
           (1000 * 60 * 60 * 24)
       )
     : null;
+  const expiringSoon = !isExpired && daysLeft !== null && daysLeft <= 5;
 
   return (
     <div className="flex flex-col gap-6">
@@ -46,6 +49,26 @@ export default async function SocioHomePage() {
           </p>
         )}
       </div>
+
+      {(isExpired || expiringSoon) && (
+        <Card className="border-destructive/50">
+          <CardHeader>
+            <CardTitle className="text-destructive">
+              {isExpired ? "Tu membresía ya venció" : `Tu membresía vence en ${daysLeft} días`}
+            </CardTitle>
+            <CardDescription>
+              {isExpired
+                ? "Renueva tu pago para seguir teniendo acceso al gimnasio."
+                : "Renueva a tiempo para no perder tu acceso."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button size="sm" variant="destructive" render={<Link href="/socio/pago" />}>
+              Ver cómo pagar
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

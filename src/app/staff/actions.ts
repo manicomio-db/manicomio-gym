@@ -236,3 +236,34 @@ export async function resetSocioPassword(
 
   return { error: null, success: true };
 }
+
+export async function markProofReviewed(formData: FormData) {
+  const { profile, supabase } = await requireStaff();
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+
+  await supabase
+    .from("payment_proofs")
+    .update({ status: "revisado", reviewed_by: profile.id, reviewed_at: new Date().toISOString() })
+    .eq("id", id);
+
+  revalidatePath("/staff/comprobantes");
+}
+
+export async function replyMessage(formData: FormData) {
+  const { profile, supabase } = await requireStaff();
+  const socioId = String(formData.get("socio_id") ?? "");
+  const body = String(formData.get("body") ?? "").trim();
+  if (!socioId || !body) return;
+
+  await supabase.from("messages").insert({
+    socio_id: socioId,
+    sender_id: profile.id,
+    sender_role: profile.role,
+    body,
+  });
+
+  revalidatePath(`/staff/mensajes/${socioId}`);
+  revalidatePath("/staff/mensajes");
+  revalidatePath("/socio/mensajes");
+}

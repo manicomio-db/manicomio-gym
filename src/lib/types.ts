@@ -136,3 +136,26 @@ export type Expense = {
   created_at: string;
   expense_categories?: ExpenseCategory | null;
 };
+
+export type PaymentProofStatus = "pendiente" | "revisado";
+
+export type PaymentProof = {
+  id: string;
+  socio_id: string;
+  file_path: string;
+  note: string | null;
+  status: PaymentProofStatus;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  profiles?: Profile | null;
+};
+
+export type Message = {
+  id: string;
+  socio_id: string;
+  sender_id: string;
+  sender_role: Role;
+  body: string;
+  created_at: string;
+};
