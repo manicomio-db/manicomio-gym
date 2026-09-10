@@ -53,10 +53,12 @@ const ROLE_LABEL: Record<Role, string> = {
 export function AppShell({
   role,
   name,
+  badges,
   children,
 }: {
   role: Role;
   name: string | null;
+  badges?: Record<string, number>;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -81,18 +83,24 @@ export function AppShell({
         <nav className="flex flex-1 flex-col gap-1">
           {items.map((item) => {
             const active = pathname === item.href;
+            const badge = badges?.[item.href] ?? 0;
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "border-l-2 px-3 py-2 text-sm font-medium uppercase tracking-wide transition-colors",
+                  "flex items-center justify-between gap-2 border-l-2 px-3 py-2 text-sm font-medium uppercase tracking-wide transition-colors",
                   active
                     ? "border-primary bg-primary/10 text-foreground"
                     : "border-transparent text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
                 )}
               >
-                {item.label}
+                <span>{item.label}</span>
+                {badge > 0 && (
+                  <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold leading-none text-primary-foreground">
+                    {badge}
+                  </span>
+                )}
               </Link>
             );
           })}

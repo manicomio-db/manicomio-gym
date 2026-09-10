@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/supabase/session";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { todayLocal } from "@/lib/date";
+import { todayLocal, addDays } from "@/lib/date";
 import type { RoutineContent } from "@/lib/types";
 
 async function requireStaff() {
@@ -248,6 +248,63 @@ export async function markProofReviewed(formData: FormData) {
     .eq("id", id);
 
   revalidatePath("/staff/comprobantes");
+}
+
+export async function activateMembershipFromProof(formData: FormData) {
+  const { profile, supabase } = await requireStaff();
+
+  const proofId = String(formData.get("proof_id") ?? "");
+  const socioId = String(formData.get("socio_id") ?? "");
+  const planId = String(formData.get("plan_id") ?? "");
+  const amountRaw = formData.get("amount_paid");
+
+  if (!proofId || !socioId || !planId) return;
+
+  const { data: plan } = await supabase
+    .from("membership_plans")
+    .select("duration_days, price")
+    .eq("id", planId)
+    .single();
+
+  if (!plan) return;
+
+  const today = todayLocal();
+
+  // Si la membresía actual sigue vigente, la renovación se agrega a partir de su
+  // vencimiento; si ya venció (o no existe), arranca hoy.
+  const { data: last } = await supabase
+    .from("memberships")
+    .select("end_date")
+    .eq("socio_id", socioId)
+    .order("end_date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const base = last && last.end_date > today ? last.end_date : today;
+  const endDate = addDays(base, plan.duration_days);
+
+  await supabase.from("memberships").insert({
+    socio_id: socioId,
+    plan_id: planId,
+    start_date: today,
+    end_date: endDate,
+    status: "activo",
+    amount_paid: amountRaw ? Number(amountRaw) : Number(plan.price),
+    created_by: profile.id,
+  });
+
+  await supabase
+    .from("payment_proofs")
+    .update({ status: "revisado", reviewed_by: profile.id, reviewed_at: new Date().toISOString() })
+    .eq("id", proofId);
+
+  revalidatePath("/staff/comprobantes");
+  revalidatePath("/staff/socios");
+  revalidatePath("/staff");
+  revalidatePath("/dueno");
+  revalidatePath("/dueno/ingresos");
+  revalidatePath("/socio");
+  revalidatePath("/socio/pago");
 }
 
 export async function replyMessage(formData: FormData) {

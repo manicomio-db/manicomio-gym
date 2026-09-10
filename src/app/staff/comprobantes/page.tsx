@@ -2,20 +2,24 @@ import { requireProfile } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { PaymentProof } from "@/lib/types";
+import type { MembershipPlan, PaymentProof } from "@/lib/types";
 import { markProofReviewed } from "../actions";
+import { ActivateDialog } from "./activate-dialog";
 
 type ProofRow = PaymentProof & { profiles: { full_name: string | null; member_number: number | null } | null };
 
 export default async function StaffComprobantesPage() {
   const { supabase } = await requireProfile();
 
-  const { data: proofs } = await supabase
-    .from("payment_proofs")
-    .select("*, profiles!payment_proofs_socio_id_fkey(full_name, member_number)")
-    .order("status", { ascending: true })
-    .order("created_at", { ascending: false })
-    .returns<ProofRow[]>();
+  const [{ data: proofs }, { data: plans }] = await Promise.all([
+    supabase
+      .from("payment_proofs")
+      .select("*, profiles!payment_proofs_socio_id_fkey(full_name, member_number)")
+      .order("status", { ascending: true })
+      .order("created_at", { ascending: false })
+      .returns<ProofRow[]>(),
+    supabase.from("membership_plans").select("*").order("price").returns<MembershipPlan[]>(),
+  ]);
 
   const proofsWithUrls = await Promise.all(
     (proofs ?? []).map(async (p) => {
@@ -29,14 +33,14 @@ export default async function StaffComprobantesPage() {
       <div>
         <h1 className="text-2xl font-bold">Comprobantes de pago</h1>
         <p className="text-muted-foreground">
-          Revisa cada uno y, si el pago llegó, activa la membresía desde Socios.
+          Revisa cada comprobante y, si el pago llegó, activa el plan ahí mismo.
         </p>
       </div>
 
       {proofsWithUrls.length > 0 ? (
         <div className="grid gap-4">
           {proofsWithUrls.map((p) => (
-            <Card key={p.id}>
+            <Card key={p.id} className={p.status === "pendiente" ? "border-primary" : undefined}>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
                   <CardTitle>
@@ -51,7 +55,7 @@ export default async function StaffComprobantesPage() {
                   {p.status === "revisado" ? "Revisado" : "Pendiente"}
                 </Badge>
               </CardHeader>
-              <CardContent className="flex items-center justify-between">
+              <CardContent className="flex flex-wrap items-center justify-between gap-3">
                 <div className="text-sm">
                   {p.url ? (
                     <a href={p.url} target="_blank" rel="noreferrer" className="underline">
@@ -63,12 +67,20 @@ export default async function StaffComprobantesPage() {
                   {p.note && <p className="mt-1 text-muted-foreground">{p.note}</p>}
                 </div>
                 {p.status === "pendiente" && (
-                  <form action={markProofReviewed}>
-                    <input type="hidden" name="id" value={p.id} />
-                    <Button type="submit" size="sm">
-                      Marcar revisado
-                    </Button>
-                  </form>
+                  <div className="flex gap-2">
+                    <ActivateDialog
+                      proofId={p.id}
+                      socioId={p.socio_id}
+                      socioNombre={p.profiles?.full_name ?? "Socio"}
+                      plans={plans ?? []}
+                    />
+                    <form action={markProofReviewed}>
+                      <input type="hidden" name="id" value={p.id} />
+                      <Button type="submit" size="sm" variant="outline">
+                        Solo marcar revisado
+                      </Button>
+                    </form>
+                  </div>
                 )}
               </CardContent>
             </Card>

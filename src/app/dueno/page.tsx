@@ -9,20 +9,30 @@ export default async function DuenoHomePage() {
   const { supabase } = await requireProfile();
   const today = todayLocal();
 
-  const [{ count: sociosActivos }, { count: sociosTotal }, { count: pendientes }, { data: sales }, expiredSocios] =
-    await Promise.all([
-      supabase
-        .from("memberships")
-        .select("*", { count: "exact", head: true })
-        .gte("end_date", today),
-      supabase.from("profiles").select("*", { count: "exact", head: true }).eq("role", "socio"),
-      supabase
-        .from("routine_requests")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "pendiente"),
-      supabase.from("sales").select("total"),
-      getExpiredSocios(supabase),
-    ]);
+  const [
+    { count: sociosActivos },
+    { count: sociosTotal },
+    { count: pendientes },
+    { count: comprobantesPendientes },
+    { data: sales },
+    expiredSocios,
+  ] = await Promise.all([
+    supabase
+      .from("memberships")
+      .select("*", { count: "exact", head: true })
+      .gte("end_date", today),
+    supabase.from("profiles").select("*", { count: "exact", head: true }).eq("role", "socio"),
+    supabase
+      .from("routine_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "pendiente"),
+    supabase
+      .from("payment_proofs")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "pendiente"),
+    supabase.from("sales").select("total"),
+    getExpiredSocios(supabase),
+  ]);
 
   const ingresos = (sales ?? []).reduce((sum, s) => sum + Number(s.total), 0);
 
@@ -32,6 +42,27 @@ export default async function DuenoHomePage() {
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground">Vista general del gimnasio.</p>
       </div>
+
+      {(comprobantesPendientes ?? 0) > 0 && (
+        <Card className="border-primary">
+          <CardHeader>
+            <CardTitle className="text-primary">
+              {comprobantesPendientes}{" "}
+              {comprobantesPendientes === 1
+                ? "comprobante nuevo sin revisar"
+                : "comprobantes nuevos sin revisar"}
+            </CardTitle>
+            <CardDescription>
+              Un socio subió su comprobante de pago. Revísalo y activa su plan.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button size="sm" render={<Link href="/staff/comprobantes" />}>
+              Ver comprobantes
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {expiredSocios.length > 0 && (
         <Card className="border-destructive/50">

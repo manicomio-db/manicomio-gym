@@ -7,13 +7,23 @@ import { getExpiredSocios } from "@/lib/memberships";
 export default async function StaffHomePage() {
   const { supabase } = await requireProfile();
 
-  const [{ count: pendientes }, { count: socios }, { count: productos }, expiredSocios] = await Promise.all([
+  const [
+    { count: pendientes },
+    { count: socios },
+    { count: productos },
+    { count: comprobantesPendientes },
+    expiredSocios,
+  ] = await Promise.all([
     supabase
       .from("routine_requests")
       .select("*", { count: "exact", head: true })
       .eq("status", "pendiente"),
     supabase.from("profiles").select("*", { count: "exact", head: true }).eq("role", "socio"),
     supabase.from("products").select("*", { count: "exact", head: true }),
+    supabase
+      .from("payment_proofs")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "pendiente"),
     getExpiredSocios(supabase),
   ]);
 
@@ -23,6 +33,27 @@ export default async function StaffHomePage() {
         <h1 className="text-2xl font-bold">Panel de staff</h1>
         <p className="text-muted-foreground">Resumen de lo que necesita atención.</p>
       </div>
+
+      {(comprobantesPendientes ?? 0) > 0 && (
+        <Card className="border-primary">
+          <CardHeader>
+            <CardTitle className="text-primary">
+              {comprobantesPendientes}{" "}
+              {comprobantesPendientes === 1
+                ? "comprobante nuevo sin revisar"
+                : "comprobantes nuevos sin revisar"}
+            </CardTitle>
+            <CardDescription>
+              Un socio subió su comprobante de pago. Revísalo y activa su plan.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button size="sm" nativeButton={false} render={<Link href="/staff/comprobantes" />}>
+              Ver comprobantes
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {expiredSocios.length > 0 && (
         <Card className="border-destructive/50">
