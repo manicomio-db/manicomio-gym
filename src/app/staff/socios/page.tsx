@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Membership, MembershipPlan, Profile } from "@/lib/types";
 import { MembershipDialog } from "./membership-dialog";
+import { RegisterPaymentDialog } from "./register-payment-dialog";
 import { ResetPasswordDialog } from "./reset-password-dialog";
 import { deleteSocio, deleteMembership } from "@/app/dueno/actions";
 
@@ -134,14 +135,21 @@ export default async function StaffSociosPage({
                     ? `Plan: ${membership.membership_plans?.name ?? "—"} · Vence: ${membership.end_date}`
                     : "Sin membresía registrada"}
                 </div>
-                <div className="flex gap-2">
-                  <MembershipDialog
+                <div className="flex flex-wrap gap-2">
+                  <RegisterPaymentDialog
                     socioId={socio.id}
                     socioNombre={socio.full_name ?? "Socio"}
                     plans={plans ?? []}
-                    currentPlanId={membership?.plan_id ?? null}
-                    currentEndDate={membership?.end_date ?? null}
                   />
+                  {isDueno && (
+                    <MembershipDialog
+                      socioId={socio.id}
+                      socioNombre={socio.full_name ?? "Socio"}
+                      plans={plans ?? []}
+                      currentPlanId={membership?.plan_id ?? null}
+                      currentEndDate={membership?.end_date ?? null}
+                    />
+                  )}
                   <ResetPasswordDialog socioId={socio.id} socioNombre={socio.full_name ?? "Socio"} />
                   {isDueno && membership && (
                     <form action={deleteMembership}>

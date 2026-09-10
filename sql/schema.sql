@@ -476,6 +476,12 @@ drop policy if exists "payment_proofs_insert_own" on public.payment_proofs;
 create policy "payment_proofs_insert_own" on public.payment_proofs
   for insert with check (socio_id = auth.uid());
 
+-- Staff/dueño puede registrar un comprobante a nombre de cualquier socio
+-- (pagos en efectivo o en recepción).
+drop policy if exists "payment_proofs_insert_staff" on public.payment_proofs;
+create policy "payment_proofs_insert_staff" on public.payment_proofs
+  for insert with check (public.is_staff_or_dueno());
+
 drop policy if exists "payment_proofs_update_staff" on public.payment_proofs;
 create policy "payment_proofs_update_staff" on public.payment_proofs
   for update using (public.is_staff_or_dueno());
@@ -542,6 +548,10 @@ create policy "payment_proofs_storage_insert_own" on storage.objects
   for insert with check (
     bucket_id = 'payment-proofs' and (storage.foldername(name))[1] = auth.uid()::text
   );
+
+drop policy if exists "payment_proofs_storage_insert_staff" on storage.objects;
+create policy "payment_proofs_storage_insert_staff" on storage.objects
+  for insert with check (bucket_id = 'payment-proofs' and public.is_staff_or_dueno());
 
 drop policy if exists "payment_proofs_storage_select_own_or_staff" on storage.objects;
 create policy "payment_proofs_storage_select_own_or_staff" on storage.objects
