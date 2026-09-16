@@ -9,6 +9,7 @@ import type { Membership, MembershipPlan, Profile } from "@/lib/types";
 import { MembershipDialog } from "./membership-dialog";
 import { RegisterPaymentDialog } from "./register-payment-dialog";
 import { ResetPasswordDialog } from "./reset-password-dialog";
+import { AvatarDialog } from "./avatar-dialog";
 import { deleteSocio, deleteMembership } from "@/app/dueno/actions";
 
 export default async function StaffSociosPage({
@@ -112,18 +113,25 @@ export default async function StaffSociosPage({
           return (
             <Card key={socio.id}>
               <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>
-                    {socio.full_name ?? "Sin nombre"}{" "}
-                    <span className="text-sm font-normal text-muted-foreground">
-                      #{socio.member_number}
-                    </span>
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    {[socio.username && `@${socio.username}`, socio.phone]
-                      .filter(Boolean)
-                      .join(" · ") || "Sin datos de contacto"}
-                  </p>
+                <div className="flex items-center gap-3">
+                  <AvatarDialog
+                    socioId={socio.id}
+                    socioNombre={socio.full_name ?? "Socio"}
+                    avatarUrl={socio.avatar_url}
+                  />
+                  <div>
+                    <CardTitle>
+                      {socio.full_name ?? "Sin nombre"}{" "}
+                      <span className="text-sm font-normal text-muted-foreground">
+                        #{socio.member_number}
+                      </span>
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      {[socio.username && `@${socio.username}`, socio.phone]
+                        .filter(Boolean)
+                        .join(" · ") || "Sin datos de contacto"}
+                    </p>
+                  </div>
                 </div>
                 <Badge variant={expired ? "destructive" : "default"}>
                   {expired ? "Vencida" : "Activa"}

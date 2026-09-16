@@ -162,6 +162,7 @@ export type CheckInState = {
     memberNumber: number;
     status: "activo" | "vencido" | "sin_membresia";
     endDate: string | null;
+    avatarUrl: string | null;
   } | null;
 };
 
@@ -213,6 +214,7 @@ export async function registerCheckIn(
       memberNumber: socio.member_number,
       status,
       endDate: membership?.end_date ?? null,
+      avatarUrl: socio.avatar_url ?? null,
     },
   };
 }
@@ -244,6 +246,39 @@ export async function resetSocioPassword(
   }
 
   return { error: null, success: true };
+}
+
+export async function uploadSocioAvatar(formData: FormData) {
+  await requireStaff();
+
+  const socioId = String(formData.get("socio_id") ?? "");
+  const file = formData.get("file");
+  if (!socioId || !(file instanceof File) || file.size === 0) return;
+
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error("Falta configurar SUPABASE_SERVICE_ROLE_KEY en el servidor.");
+  }
+
+  const admin = createAdminClient();
+  const path = `${socioId}/avatar`;
+
+  const { error: uploadError } = await admin.storage
+    .from("avatars")
+    .upload(path, file, { contentType: file.type || undefined, upsert: true });
+
+  if (uploadError) {
+    console.error("uploadSocioAvatar error:", uploadError);
+    throw new Error(uploadError.message);
+  }
+
+  const { data } = admin.storage.from("avatars").getPublicUrl(path);
+  const avatarUrl = `${data.publicUrl}?v=${Date.now()}`;
+
+  await admin.from("profiles").update({ avatar_url: avatarUrl }).eq("id", socioId);
+
+  revalidatePath("/staff/socios");
+  revalidatePath("/staff/acceso");
+  revalidatePath("/socio");
 }
 
 export async function markProofReviewed(formData: FormData) {

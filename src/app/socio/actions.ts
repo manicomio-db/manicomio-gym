@@ -78,6 +78,32 @@ export async function uploadPaymentProof(formData: FormData) {
   revalidatePath("/staff/comprobantes");
 }
 
+export async function uploadAvatar(formData: FormData) {
+  const { profile, supabase } = await requireProfile();
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) return;
+
+  const path = `${profile.id}/avatar`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("avatars")
+    .upload(path, file, { contentType: file.type || undefined, upsert: true });
+
+  if (uploadError) {
+    console.error("uploadAvatar error:", uploadError);
+    throw new Error(uploadError.message);
+  }
+
+  const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+  const avatarUrl = `${data.publicUrl}?v=${Date.now()}`;
+
+  await supabase.from("profiles").update({ avatar_url: avatarUrl }).eq("id", profile.id);
+
+  revalidatePath("/socio");
+  revalidatePath("/staff/socios");
+}
+
 export async function sendMessage(formData: FormData) {
   const { profile, supabase } = await requireProfile();
   const body = String(formData.get("body") ?? "").trim();

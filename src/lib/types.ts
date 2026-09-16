@@ -7,6 +7,7 @@ export type Profile = {
   phone: string | null;
   username: string | null;
   member_number: number | null;
+  avatar_url: string | null;
   created_at: string;
 };
 

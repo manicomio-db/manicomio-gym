@@ -57,13 +57,27 @@ export function CheckInForm() {
 
         {state.result && (
           <div className="flex items-center justify-between rounded-md border p-3">
-            <div>
-              <p className="font-semibold">
-                #{state.result.memberNumber} — {state.result.name}
-              </p>
-              {state.result.endDate && (
-                <p className="text-sm text-muted-foreground">Vence: {state.result.endDate}</p>
+            <div className="flex items-center gap-3">
+              {state.result.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={state.result.avatarUrl}
+                  alt={state.result.name}
+                  className="h-12 w-12 rounded-full border object-cover"
+                />
+              ) : (
+                <div className="flex h-12 w-12 items-center justify-center rounded-full border bg-muted text-xs text-muted-foreground">
+                  Sin foto
+                </div>
               )}
+              <div>
+                <p className="font-semibold">
+                  #{state.result.memberNumber} — {state.result.name}
+                </p>
+                {state.result.endDate && (
+                  <p className="text-sm text-muted-foreground">Vence: {state.result.endDate}</p>
+                )}
+              </div>
             </div>
             <Badge variant={state.result.status === "activo" ? "default" : "destructive"}>
               {STATUS_LABEL[state.result.status]}

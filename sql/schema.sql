@@ -21,6 +21,7 @@ create table if not exists public.profiles (
 
 alter table public.profiles add column if not exists member_number integer;
 alter table public.profiles add column if not exists username text;
+alter table public.profiles add column if not exists avatar_url text;
 
 do $$
 begin
@@ -563,3 +564,37 @@ create policy "payment_proofs_storage_select_own_or_staff" on storage.objects
 drop policy if exists "payment_proofs_storage_delete_staff" on storage.objects;
 create policy "payment_proofs_storage_delete_staff" on storage.objects
   for delete using (bucket_id = 'payment-proofs' and public.is_staff_or_dueno());
+
+-- ----------------------------------------------------------------------------
+-- Storage: bucket público para fotos de perfil de los socios
+-- Cada archivo se guarda como "{socio_id}/avatar" (sin extensión, con upsert)
+-- para que siempre haya una sola foto vigente por persona. El staff sube o
+-- reemplaza la foto usando el cliente admin desde el servidor (bypassa RLS),
+-- así que aquí solo hace falta la política para que cada quien suba la suya.
+-- ----------------------------------------------------------------------------
+
+insert into storage.buckets (id, name, public)
+values ('avatars', 'avatars', true)
+on conflict (id) do nothing;
+
+drop policy if exists "avatars_public_read" on storage.objects;
+create policy "avatars_public_read" on storage.objects
+  for select using (bucket_id = 'avatars');
+
+drop policy if exists "avatars_insert_own" on storage.objects;
+create policy "avatars_insert_own" on storage.objects
+  for insert with check (
+    bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "avatars_update_own" on storage.objects;
+create policy "avatars_update_own" on storage.objects
+  for update using (
+    bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "avatars_delete_own" on storage.objects;
+create policy "avatars_delete_own" on storage.objects
+  for delete using (
+    bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text
+  );
