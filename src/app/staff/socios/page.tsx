@@ -10,6 +10,7 @@ import { MembershipDialog } from "./membership-dialog";
 import { RegisterPaymentDialog } from "./register-payment-dialog";
 import { ResetPasswordDialog } from "./reset-password-dialog";
 import { AvatarDialog } from "./avatar-dialog";
+import { QrDialog } from "./qr-dialog";
 import { deleteSocio, deleteMembership } from "@/app/dueno/actions";
 
 export default async function StaffSociosPage({
@@ -149,6 +150,7 @@ export default async function StaffSociosPage({
                     socioNombre={socio.full_name ?? "Socio"}
                     plans={plans ?? []}
                   />
+                  <QrDialog memberNumber={socio.member_number} socioNombre={socio.full_name ?? "Socio"} />
                   {isDueno && (
                     <MembershipDialog
                       socioId={socio.id}

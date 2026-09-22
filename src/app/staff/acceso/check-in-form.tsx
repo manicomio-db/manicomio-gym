@@ -1,12 +1,15 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { parseSocioQrPayload } from "@/lib/qr";
 import { registerCheckIn, type CheckInState } from "../actions";
+import { QrScanner } from "./qr-scanner";
 
 const initialState: CheckInState = { error: null, result: null };
 
@@ -18,15 +21,26 @@ const STATUS_LABEL = {
 
 export function CheckInForm() {
   const [state, formAction, pending] = useActionState(registerCheckIn, initialState);
+  const [mode, setMode] = useState<"manual" | "qr">("manual");
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (state.result || state.error) {
       formRef.current?.reset();
-      inputRef.current?.focus();
+      if (mode === "manual") inputRef.current?.focus();
     }
-  }, [state]);
+  }, [state, mode]);
+
+  function handleQrDetect(payload: string) {
+    const memberNumber = parseSocioQrPayload(payload);
+    if (!memberNumber) {
+      toast.error("Ese QR no es de un socio de Manicomio Gym.");
+      return;
+    }
+    if (inputRef.current) inputRef.current.value = String(memberNumber);
+    formRef.current?.requestSubmit();
+  }
 
   return (
     <Card>
@@ -34,8 +48,27 @@ export function CheckInForm() {
         <CardTitle>Registrar entrada</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant={mode === "manual" ? "default" : "outline"}
+            onClick={() => setMode("manual")}
+          >
+            Número manual
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={mode === "qr" ? "default" : "outline"}
+            onClick={() => setMode("qr")}
+          >
+            Registrar con QR
+          </Button>
+        </div>
+
         <form ref={formRef} action={formAction} className="flex flex-wrap items-end gap-3">
-          <div className="flex flex-col gap-2">
+          <div className={mode === "manual" ? "flex flex-col gap-2" : "hidden"}>
             <Label htmlFor="member_number">Número de socio</Label>
             <Input
               ref={inputRef}
@@ -43,15 +76,19 @@ export function CheckInForm() {
               name="member_number"
               type="number"
               min={1}
-              autoFocus
+              autoFocus={mode === "manual"}
               className="w-40"
               required
             />
           </div>
-          <Button type="submit" disabled={pending}>
-            {pending ? "Buscando..." : "Registrar entrada"}
-          </Button>
+          {mode === "manual" && (
+            <Button type="submit" disabled={pending}>
+              {pending ? "Buscando..." : "Registrar entrada"}
+            </Button>
+          )}
         </form>
+
+        {mode === "qr" && <QrScanner active={mode === "qr"} onDetect={handleQrDetect} />}
 
         {state.error && <p className="text-sm text-destructive">{state.error}</p>}
 

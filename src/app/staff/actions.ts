@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/supabase/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { todayLocal, addDays } from "@/lib/date";
+import { generateSocioQrDataUrl } from "@/lib/qr";
 import type { RoutineContent } from "@/lib/types";
 
 async function requireStaff() {
@@ -246,6 +247,11 @@ export async function resetSocioPassword(
   }
 
   return { error: null, success: true };
+}
+
+export async function getSocioQrDataUrl(memberNumber: number): Promise<string> {
+  await requireStaff();
+  return generateSocioQrDataUrl(memberNumber);
 }
 
 export async function uploadSocioAvatar(formData: FormData) {

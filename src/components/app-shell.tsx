@@ -15,6 +15,7 @@ const NAV: Record<Role, NavItem[]> = {
     { href: "/socio/rutina", label: "Mi rutina" },
     { href: "/socio/tienda", label: "Tienda" },
     { href: "/socio/pago", label: "Mi pago" },
+    { href: "/socio/qr", label: "Mi QR" },
     { href: "/socio/mensajes", label: "Mensajes" },
   ],
   staff: [
