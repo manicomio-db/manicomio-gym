@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import jsQR from "jsqr";
 
 const SCAN_INTERVAL_MS = 200;
-const COOLDOWN_MS = 2500;
+const COOLDOWN_MS = 4000;
 
 /**
  * Prende la cámara del dispositivo y lee códigos QR de los frames de video con

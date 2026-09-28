@@ -9,6 +9,11 @@ export function todayLocal(): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: GYM_TIMEZONE }).format(new Date());
 }
 
+/** Fecha YYYY-MM-DD, en la zona horaria del gimnasio, de un instante (Date o ISO). */
+export function localDateOf(value: Date | string): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: GYM_TIMEZONE }).format(new Date(value));
+}
+
 /** Suma `days` días a una fecha YYYY-MM-DD y devuelve otra fecha YYYY-MM-DD. */
 export function addDays(dateStr: string, days: number): string {
   const [y, m, d] = dateStr.split("-").map(Number);

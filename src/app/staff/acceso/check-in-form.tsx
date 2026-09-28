@@ -93,32 +93,53 @@ export function CheckInForm() {
         {state.error && <p className="text-sm text-destructive">{state.error}</p>}
 
         {state.result && (
-          <div className="flex items-center justify-between rounded-md border p-3">
-            <div className="flex items-center gap-3">
-              {state.result.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={state.result.avatarUrl}
-                  alt={state.result.name}
-                  className="h-12 w-12 rounded-full border object-cover"
-                />
-              ) : (
-                <div className="flex h-12 w-12 items-center justify-center rounded-full border bg-muted text-xs text-muted-foreground">
-                  Sin foto
-                </div>
-              )}
-              <div>
-                <p className="font-semibold">
-                  #{state.result.memberNumber} — {state.result.name}
-                </p>
-                {state.result.endDate && (
-                  <p className="text-sm text-muted-foreground">Vence: {state.result.endDate}</p>
+          <div
+            className={
+              state.result.status === "activo"
+                ? "flex flex-col gap-3 rounded-md border-2 border-green-500 bg-green-500/15 p-4"
+                : "flex flex-col gap-3 rounded-md border-2 border-red-500 bg-red-500/15 p-4"
+            }
+          >
+            <p
+              className={
+                state.result.status === "activo"
+                  ? "text-xl font-bold text-green-400"
+                  : "text-xl font-bold text-red-400"
+              }
+            >
+              {state.result.alreadyRegistered
+                ? `Ya registró su entrada hoy a las ${new Date(state.result.checkedInAt).toLocaleTimeString("es-MX", { hour: "numeric", minute: "2-digit", hour12: true })}`
+                : state.result.status === "activo"
+                  ? "Entrada registrada"
+                  : "Entrada registrada — membresía no vigente"}
+            </p>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                {state.result.avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={state.result.avatarUrl}
+                    alt={state.result.name}
+                    className="h-14 w-14 rounded-full border object-cover"
+                  />
+                ) : (
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full border bg-muted text-xs text-muted-foreground">
+                    Sin foto
+                  </div>
                 )}
+                <div>
+                  <p className="font-semibold">
+                    #{state.result.memberNumber} — {state.result.name}
+                  </p>
+                  {state.result.endDate && (
+                    <p className="text-sm text-muted-foreground">Vence: {state.result.endDate}</p>
+                  )}
+                </div>
               </div>
+              <Badge variant={state.result.status === "activo" ? "default" : "destructive"}>
+                {STATUS_LABEL[state.result.status]}
+              </Badge>
             </div>
-            <Badge variant={state.result.status === "activo" ? "default" : "destructive"}>
-              {STATUS_LABEL[state.result.status]}
-            </Badge>
           </div>
         )}
       </CardContent>

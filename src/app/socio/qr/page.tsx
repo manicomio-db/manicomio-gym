@@ -1,5 +1,6 @@
 import { requireProfile } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { generateSocioQrDataUrl } from "@/lib/qr";
 
 export default async function SocioQrPage() {
@@ -24,13 +25,19 @@ export default async function SocioQrPage() {
             <CardTitle>#{profile.member_number}</CardTitle>
             <CardDescription>{profile.full_name ?? "Socio"}</CardDescription>
           </CardHeader>
-          <CardContent className="flex justify-center">
+          <CardContent className="flex flex-col items-center gap-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={qrDataUrl}
               alt={`QR de ${profile.full_name ?? "socio"}`}
               className="h-72 w-72 rounded-md border bg-white p-3"
             />
+            <Button
+              nativeButton={false}
+              render={<a href={qrDataUrl} download={`qr-manicomio-socio-${profile.member_number}.png`} />}
+            >
+              Descargar QR
+            </Button>
           </CardContent>
         </Card>
       ) : (

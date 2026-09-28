@@ -55,6 +55,15 @@ export function QrDialog({
               className="h-64 w-64 rounded-md border bg-white p-3"
             />
           )}
+          {qr && (
+            <Button
+              size="sm"
+              nativeButton={false}
+              render={<a href={qr} download={`qr-manicomio-socio-${memberNumber}.png`} />}
+            >
+              Descargar QR
+            </Button>
+          )}
           <p className="text-center text-sm text-muted-foreground">
             Muéstralo o imprímelo para que el socio lo use en Control de acceso.
           </p>

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/supabase/session";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { todayLocal, addDays } from "@/lib/date";
+import { todayLocal, addDays, localDateOf } from "@/lib/date";
 import { generateSocioQrDataUrl } from "@/lib/qr";
 import type { RoutineContent } from "@/lib/types";
 
@@ -164,6 +164,10 @@ export type CheckInState = {
     status: "activo" | "vencido" | "sin_membresia";
     endDate: string | null;
     avatarUrl: string | null;
+    /** true si ya tenía una entrada hoy: no se vuelve a registrar. */
+    alreadyRegistered: boolean;
+    /** Instante (ISO) de la entrada de hoy — la nueva o la que ya existía. */
+    checkedInAt: string;
   } | null;
 };
 
@@ -204,9 +208,29 @@ export async function registerCheckIn(
       ? "activo"
       : "vencido";
 
-  await supabase.from("check_ins").insert({ socio_id: socio.id, staff_id: profile.id });
+  // Una sola entrada por socio por día (día del gimnasio, no UTC). Se revisan las
+  // últimas 36 h y se compara la fecha local de cada una.
+  const since = new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString();
+  const { data: recent } = await supabase
+    .from("check_ins")
+    .select("created_at")
+    .eq("socio_id", socio.id)
+    .gte("created_at", since)
+    .order("created_at", { ascending: false });
 
-  revalidatePath("/staff/acceso");
+  const existingToday = (recent ?? []).find((c) => localDateOf(c.created_at) === today);
+
+  let checkedInAt = existingToday?.created_at ?? new Date().toISOString();
+
+  if (!existingToday) {
+    const { data: inserted } = await supabase
+      .from("check_ins")
+      .insert({ socio_id: socio.id, staff_id: profile.id })
+      .select("created_at")
+      .single();
+    if (inserted) checkedInAt = inserted.created_at;
+    revalidatePath("/staff/acceso");
+  }
 
   return {
     error: null,
@@ -216,6 +240,8 @@ export async function registerCheckIn(
       status,
       endDate: membership?.end_date ?? null,
       avatarUrl: socio.avatar_url ?? null,
+      alreadyRegistered: Boolean(existingToday),
+      checkedInAt,
     },
   };
 }
