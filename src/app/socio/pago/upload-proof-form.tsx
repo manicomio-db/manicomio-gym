@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,11 +11,19 @@ import { uploadPaymentProof } from "../actions";
 export function UploadProofForm() {
   const [pending, setPending] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
+  // El ref bloquea al instante los clics repetidos (el estado se actualiza con retraso).
+  const submittingRef = useRef(false);
 
   async function action(formData: FormData) {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setPending(true);
     try {
-      await uploadPaymentProof(formData);
+      const { error } = await uploadPaymentProof(formData);
+      if (error) {
+        toast.error(error);
+        return;
+      }
       toast.success("Comprobante enviado. El staff lo va a revisar pronto.");
       setFileName(null);
       const form = document.getElementById("upload-proof-form") as HTMLFormElement | null;
@@ -23,6 +31,7 @@ export function UploadProofForm() {
     } catch {
       toast.error("No se pudo subir el comprobante.");
     } finally {
+      submittingRef.current = false;
       setPending(false);
     }
   }
@@ -46,7 +55,7 @@ export function UploadProofForm() {
         <Textarea id="note" name="note" placeholder="Ej: pagué el plan mensual" />
       </div>
       <Button type="submit" disabled={pending} className="w-fit">
-        {pending ? "Subiendo..." : "Enviar comprobante"}
+        {pending ? "Enviando..." : "Enviar comprobante"}
       </Button>
     </form>
   );

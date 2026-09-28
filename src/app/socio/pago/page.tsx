@@ -26,7 +26,8 @@ export default async function SocioPagoPage() {
     })
   );
 
-  const hasBankInfo = info.banco_nombre || info.banco_cuenta || info.banco_clabe;
+  const hasPendingProof = (proofs ?? []).some((p) => p.status === "pendiente");
+  const hasBankInfo =info.banco_nombre || info.banco_cuenta || info.banco_clabe;
 
   return (
     <div className="flex flex-col gap-6">
@@ -78,7 +79,14 @@ export default async function SocioPagoPage() {
           <CardDescription>Súbelo después de hacer tu transferencia.</CardDescription>
         </CardHeader>
         <CardContent>
-          <UploadProofForm />
+          {hasPendingProof ? (
+            <p className="text-sm text-muted-foreground">
+              Ya enviaste tu comprobante y está en revisión. Cuando el staff lo revise podrás enviar
+              otro si lo necesitas.
+            </p>
+          ) : (
+            <UploadProofForm />
+          )}
         </CardContent>
       </Card>
 

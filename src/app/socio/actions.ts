@@ -48,13 +48,30 @@ export async function requestRoutine(
   return { error: null, success: true };
 }
 
-export async function uploadPaymentProof(formData: FormData) {
+export type UploadProofResult = { error: string | null };
+
+export async function uploadPaymentProof(formData: FormData): Promise<UploadProofResult> {
   const { profile, supabase } = await requireProfile();
 
   const note = String(formData.get("note") ?? "").trim();
   const file = formData.get("file");
 
-  if (!(file instanceof File) || file.size === 0) return;
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: "Adjunta la foto o PDF del comprobante." };
+  }
+
+  // Un solo comprobante en revisión a la vez: evita duplicados por clics repetidos.
+  const { data: pending } = await supabase
+    .from("payment_proofs")
+    .select("id")
+    .eq("socio_id", profile.id)
+    .eq("status", "pendiente")
+    .limit(1)
+    .maybeSingle();
+
+  if (pending) {
+    return { error: "Ya enviaste un comprobante y está en revisión. Espera a que el staff lo revise." };
+  }
 
   const ext = file.name.split(".").pop() || "jpg";
   const path = `${profile.id}/${crypto.randomUUID()}.${ext}`;
@@ -76,6 +93,7 @@ export async function uploadPaymentProof(formData: FormData) {
 
   revalidatePath("/socio/pago");
   revalidatePath("/staff/comprobantes");
+  return { error: null };
 }
 
 export async function uploadAvatar(formData: FormData) {
