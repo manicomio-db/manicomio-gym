@@ -1,4 +1,7 @@
 const GYM_TIMEZONE = "America/Mexico_City";
+// Ciudad de México dejó el horario de verano en 2022: la zona queda fija en
+// UTC-6 todo el año, así que este offset no cambia con las estaciones.
+const GYM_UTC_OFFSET = "06:00";
 
 /**
  * "Today" as YYYY-MM-DD in the gym's local timezone, regardless of the
@@ -50,6 +53,17 @@ export function formatDateOnlyLocal(value: Date | string): string {
     month: "short",
     year: "numeric",
   }).format(new Date(value));
+}
+
+/**
+ * Instante UTC (ISO) de la medianoche de esa fecha en la zona del gimnasio.
+ * Úsalo para filtrar columnas timestamptz (created_at) por un rango de fechas
+ * locales — comparar directo contra "YYYY-MM-DD" deja que Postgres lo tome
+ * como medianoche UTC, que son las 6 p.m. (o antes) del día anterior en
+ * México, y las entradas de la noche quedan fuera del rango.
+ */
+export function startOfLocalDayIso(dateStr: string): string {
+  return `${dateStr}T${GYM_UTC_OFFSET}:00.000Z`;
 }
 
 /** Suma `days` días a una fecha YYYY-MM-DD y devuelve otra fecha YYYY-MM-DD. */

@@ -1,5 +1,11 @@
 import { requireProfile } from "@/lib/supabase/session";
-import { todayLocal, formatDateOnlyLocal, formatTimeLocal, formatDateTimeLocal } from "@/lib/date";
+import {
+  todayLocal,
+  formatDateOnlyLocal,
+  formatTimeLocal,
+  formatDateTimeLocal,
+  startOfLocalDayIso,
+} from "@/lib/date";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -39,8 +45,8 @@ export default async function StaffAccesoPage({
   let checkInsQuery = supabase
     .from("check_ins")
     .select("*, profiles!check_ins_socio_id_fkey(full_name, member_number)")
-    .gte("created_at", from)
-    .lt("created_at", toExclusiveStr)
+    .gte("created_at", startOfLocalDayIso(from))
+    .lt("created_at", startOfLocalDayIso(toExclusiveStr))
     .order("created_at", { ascending: false })
     .limit(HISTORY_LIMIT);
 

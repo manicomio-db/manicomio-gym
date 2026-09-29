@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { formatDateOnlyLocal } from "@/lib/date";
+import { formatDateOnlyLocal, localDateOf, startOfLocalDayIso } from "@/lib/date";
 import { currentMonthParam, monthLabel, monthRange, shiftMonth, weeksInMonth, inRange } from "@/lib/reports";
 import { deleteDayPass, deleteMembership, deleteSale } from "../actions";
 
@@ -63,8 +63,8 @@ export default async function DuenoIngresosPage({
     supabase
       .from("day_passes")
       .select("id, visitor_name, amount, created_at")
-      .gte("created_at", monthStart)
-      .lt("created_at", monthEnd)
+      .gte("created_at", startOfLocalDayIso(monthStart))
+      .lt("created_at", startOfLocalDayIso(monthEnd))
       .order("created_at", { ascending: false })
       .returns<DayPassRow[]>(),
     supabase
@@ -120,7 +120,7 @@ export default async function DuenoIngresosPage({
       .filter((m) => inRange(m.start_date, w.start, w.end))
       .reduce((s, m) => s + Number(m.amount_paid), 0);
     const wDayPass = (dayPasses ?? [])
-      .filter((d) => inRange(d.created_at, w.start, w.end))
+      .filter((d) => inRange(localDateOf(d.created_at), w.start, w.end))
       .reduce((s, d) => s + Number(d.amount), 0);
     const wSales = (sales ?? [])
       .filter((s) => inRange(s.sale_date, w.start, w.end))
