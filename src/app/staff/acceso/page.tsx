@@ -1,5 +1,5 @@
 import { requireProfile } from "@/lib/supabase/session";
-import { todayLocal } from "@/lib/date";
+import { todayLocal, formatDateOnlyLocal, formatTimeLocal, formatDateTimeLocal } from "@/lib/date";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -103,21 +103,14 @@ export default async function StaffAccesoPage({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {checkIns.map((c) => {
-                    const d = new Date(c.created_at);
-                    return (
-                      <TableRow key={c.id}>
-                        <TableCell>{c.profiles?.full_name ?? "—"}</TableCell>
-                        <TableCell>#{c.profiles?.member_number ?? "—"}</TableCell>
-                        <TableCell>
-                          {d.toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" })}
-                        </TableCell>
-                        <TableCell>
-                          {d.toLocaleTimeString("es-MX", { hour: "numeric", minute: "2-digit", hour12: true })}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                  {checkIns.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell>{c.profiles?.full_name ?? "—"}</TableCell>
+                      <TableCell>#{c.profiles?.member_number ?? "—"}</TableCell>
+                      <TableCell>{formatDateOnlyLocal(c.created_at)}</TableCell>
+                      <TableCell>{formatTimeLocal(c.created_at)}</TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
               {checkIns.length === HISTORY_LIMIT && (
@@ -165,7 +158,7 @@ export default async function StaffAccesoPage({
                   <TableRow key={d.id}>
                     <TableCell>{d.visitor_name}</TableCell>
                     <TableCell>${d.amount.toLocaleString("es-MX")}</TableCell>
-                    <TableCell>{new Date(d.created_at).toLocaleString("es-MX")}</TableCell>
+                    <TableCell>{formatDateTimeLocal(d.created_at)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

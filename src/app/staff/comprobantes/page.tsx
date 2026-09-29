@@ -2,6 +2,7 @@ import { requireProfile } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { formatDateTimeLocal } from "@/lib/date";
 import type { MembershipPlan, PaymentProof } from "@/lib/types";
 import { markProofReviewed } from "../actions";
 import { ActivateDialog } from "./activate-dialog";
@@ -49,7 +50,7 @@ export default async function StaffComprobantesPage() {
                       #{p.profiles?.member_number}
                     </span>
                   </CardTitle>
-                  <CardDescription>{new Date(p.created_at).toLocaleString("es-MX")}</CardDescription>
+                  <CardDescription>{formatDateTimeLocal(p.created_at)}</CardDescription>
                 </div>
                 <Badge variant={p.status === "revisado" ? "default" : "secondary"}>
                   {p.status === "revisado" ? "Revisado" : "Pendiente"}

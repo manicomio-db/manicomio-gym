@@ -2,6 +2,7 @@ import { requireProfile } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { formatDateTimeLocal } from "@/lib/date";
 import type { Message } from "@/lib/types";
 import { sendMessage } from "../actions";
 
@@ -45,7 +46,7 @@ export default async function SocioMensajesPage() {
               >
                 <p className="mb-1 text-xs font-medium text-muted-foreground">
                   {ROLE_LABEL[m.sender_role] ?? m.sender_role} ·{" "}
-                  {new Date(m.created_at).toLocaleString("es-MX")}
+                  {formatDateTimeLocal(m.created_at)}
                 </p>
                 <p className="whitespace-pre-wrap">{m.body}</p>
               </div>

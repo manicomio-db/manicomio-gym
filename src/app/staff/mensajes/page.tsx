@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireProfile } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { formatDateTimeLocal } from "@/lib/date";
 import type { Message } from "@/lib/types";
 
 type MessageRow = Message & { profiles: { full_name: string | null; member_number: number | null } | null };
@@ -47,7 +48,7 @@ export default async function StaffMensajesPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-xs text-muted-foreground">
-                  {new Date(t.created_at).toLocaleString("es-MX")}
+                  {formatDateTimeLocal(t.created_at)}
                 </p>
               </CardContent>
             </Card>

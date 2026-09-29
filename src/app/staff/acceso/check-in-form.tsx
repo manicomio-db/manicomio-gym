@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatTimeLocal } from "@/lib/date";
 import { parseSocioQrPayload } from "@/lib/qr";
 import { registerCheckIn, type CheckInState } from "../actions";
 import { QrScanner } from "./qr-scanner";
@@ -108,7 +109,7 @@ export function CheckInForm() {
               }
             >
               {state.result.alreadyRegistered
-                ? `Ya registró su entrada hoy a las ${new Date(state.result.checkedInAt).toLocaleTimeString("es-MX", { hour: "numeric", minute: "2-digit", hour12: true })}`
+                ? `Ya registró su entrada hoy a las ${formatTimeLocal(state.result.checkedInAt)}`
                 : state.result.status === "activo"
                   ? "Entrada registrada"
                   : "Entrada registrada — membresía no vigente"}

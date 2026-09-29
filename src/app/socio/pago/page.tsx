@@ -1,6 +1,7 @@
 import { requireProfile } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { formatDateOnlyLocal } from "@/lib/date";
 import type { PaymentProof } from "@/lib/types";
 import { UploadProofForm } from "./upload-proof-form";
 
@@ -107,7 +108,7 @@ export default async function SocioPagoPage() {
                     <span className="text-muted-foreground">Archivo no disponible</span>
                   )}
                   <p className="text-muted-foreground">
-                    {new Date(p.created_at).toLocaleDateString("es-MX")}
+                    {formatDateOnlyLocal(p.created_at)}
                     {p.note && ` · ${p.note}`}
                   </p>
                 </div>

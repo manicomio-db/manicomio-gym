@@ -14,6 +14,44 @@ export function localDateOf(value: Date | string): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: GYM_TIMEZONE }).format(new Date(value));
 }
 
+/**
+ * Hora (h:mm a. m./p. m.) de un instante en la zona del gimnasio. Se usa en vez
+ * de toLocaleTimeString a secas porque estas pantallas se renderizan en el
+ * servidor (Vercel corre en UTC) o en el dispositivo del staff, y en ambos
+ * casos la hora debe ser siempre la de Ciudad de México, no la del ambiente.
+ */
+export function formatTimeLocal(value: Date | string): string {
+  return new Intl.DateTimeFormat("es-MX", {
+    timeZone: GYM_TIMEZONE,
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(new Date(value));
+}
+
+/** Fecha y hora de un instante en la zona del gimnasio (ver formatTimeLocal). */
+export function formatDateTimeLocal(value: Date | string): string {
+  return new Intl.DateTimeFormat("es-MX", {
+    timeZone: GYM_TIMEZONE,
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(new Date(value));
+}
+
+/** Fecha (sin hora) de un instante en la zona del gimnasio (ver formatTimeLocal). */
+export function formatDateOnlyLocal(value: Date | string): string {
+  return new Intl.DateTimeFormat("es-MX", {
+    timeZone: GYM_TIMEZONE,
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(value));
+}
+
 /** Suma `days` días a una fecha YYYY-MM-DD y devuelve otra fecha YYYY-MM-DD. */
 export function addDays(dateStr: string, days: number): string {
   const [y, m, d] = dateStr.split("-").map(Number);

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { formatDateOnlyLocal } from "@/lib/date";
 import { currentMonthParam, monthLabel, monthRange, shiftMonth, weeksInMonth, inRange } from "@/lib/reports";
 import { deleteDayPass, deleteMembership, deleteSale } from "../actions";
 
@@ -422,7 +423,7 @@ export default async function DuenoIngresosPage({
                       <TableRow key={d.id}>
                         <TableCell>{d.visitor_name}</TableCell>
                         <TableCell>{money(Number(d.amount))}</TableCell>
-                        <TableCell>{new Date(d.created_at).toLocaleDateString("es-MX")}</TableCell>
+                        <TableCell>{formatDateOnlyLocal(d.created_at)}</TableCell>
                         <TableCell>
                           <form action={deleteDayPass}>
                             <input type="hidden" name="id" value={d.id} />
