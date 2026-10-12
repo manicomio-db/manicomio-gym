@@ -10,7 +10,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { RISK_LABEL, type RiskLevel } from "@/lib/health";
-import type { RoutineContent } from "@/lib/types";
+import { DIFFICULTY_LABEL, GOAL_LABEL, type ExerciseProgress } from "@/lib/progress";
+import type { RoutineContent, RoutineFeedback } from "@/lib/types";
+import { ProgressTable } from "../../progress-table";
+
+export type PreviousInfo = {
+  progress: ExerciseProgress[];
+  feedback: RoutineFeedback | null;
+};
 import { saveRoutine, markInProgress, discardRequest } from "../actions";
 
 export type HealthInfo = {
@@ -41,9 +48,11 @@ const STATUS_LABEL: Record<string, string> = {
 export function RoutineComposer({
   request,
   health,
+  previous,
 }: {
   request: RequestInfo;
   health: HealthInfo | null;
+  previous: PreviousInfo | null;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -59,6 +68,7 @@ export function RoutineComposer({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          request_id: request.id,
           socio_id: request.socioId,
           objetivo: request.objetivo,
           nivel: request.nivel,
@@ -211,6 +221,25 @@ export function RoutineComposer({
               className="mt-2 inline-block underline"
             >
               Llenar la ficha con el socio
+            </Link>
+          </div>
+        )}
+
+        {previous && (
+          <div className="rounded-md border p-3 text-sm">
+            <p className="mb-2 font-semibold">Progreso con la rutina anterior</p>
+            <ProgressTable progress={previous.progress} />
+            {previous.feedback && (
+              <ul className="mt-3 list-disc pl-5">
+                <li>Dificultad: {DIFFICULTY_LABEL[previous.feedback.dificultad]}</li>
+                <li>¿Logró su objetivo?: {GOAL_LABEL[previous.feedback.objetivo_logrado]}</li>
+                <li>Días por semana que entrenó: {previous.feedback.dias_por_semana ?? "no indicado"}</li>
+                {previous.feedback.molestias && <li>Molestias: {previous.feedback.molestias}</li>}
+                {previous.feedback.comentarios && <li>Comentarios: {previous.feedback.comentarios}</li>}
+              </ul>
+            )}
+            <Link href={`/staff/socios/${request.socioId}/progreso`} className="mt-2 inline-block underline">
+              Ver progreso completo
             </Link>
           </div>
         )}

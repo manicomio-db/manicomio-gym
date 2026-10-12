@@ -181,6 +181,14 @@ export default async function StaffSociosPage({
                   >
                     Ficha de salud
                   </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    nativeButton={false}
+                    render={<Link href={`/staff/socios/${socio.id}/progreso`} />}
+                  >
+                    Progreso
+                  </Button>
                   {isDueno && (
                     <MembershipDialog
                       socioId={socio.id}

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/supabase/session";
+import type { RoutineFeedback } from "@/lib/types";
 
 export type RequestRoutineState = { error: string | null; success: boolean };
 
@@ -45,6 +46,38 @@ export async function requestRoutine(
     };
   }
 
+  // Si ya tuvo una rutina, el formulario pide cómo le fue para diseñar la siguiente.
+  const { data: prevRoutine } = await supabase
+    .from("routines")
+    .select("id")
+    .eq("socio_id", profile.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  let feedback: RoutineFeedback | null = null;
+  if (prevRoutine) {
+    const dificultad = String(formData.get("dificultad") ?? "");
+    const logrado = String(formData.get("objetivo_logrado") ?? "");
+    if (
+      !["muy_facil", "adecuada", "muy_dificil"].includes(dificultad) ||
+      !["si", "parcial", "no"].includes(logrado)
+    ) {
+      return {
+        error: "Cuéntanos cómo te fue con tu rutina anterior (dificultad y si lograste tu objetivo).",
+        success: false,
+      };
+    }
+    const dias = Number(formData.get("dias_por_semana") ?? "");
+    feedback = {
+      dificultad: dificultad as RoutineFeedback["dificultad"],
+      objetivo_logrado: logrado as RoutineFeedback["objetivo_logrado"],
+      dias_por_semana: Number.isInteger(dias) && dias >= 0 && dias <= 7 ? dias : null,
+      molestias: String(formData.get("molestias") ?? "").trim().slice(0, 1000) || null,
+      comentarios: String(formData.get("comentarios") ?? "").trim().slice(0, 1000) || null,
+    };
+  }
+
   await supabase.from("routine_requests").insert({
     socio_id: profile.id,
     objetivo,
@@ -52,6 +85,8 @@ export async function requestRoutine(
     lesiones,
     sesiones_semana: sesiones,
     status: "pendiente",
+    prev_routine_id: prevRoutine?.id ?? null,
+    feedback,
   });
 
   revalidatePath("/socio/rutina");

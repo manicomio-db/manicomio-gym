@@ -47,6 +47,15 @@ export type GymClass = {
 
 export type RequestStatus = "pendiente" | "en_progreso" | "completado";
 
+/** Cómo le fue al socio con su rutina anterior, al pedir una nueva. */
+export type RoutineFeedback = {
+  dificultad: "muy_facil" | "adecuada" | "muy_dificil";
+  objetivo_logrado: "si" | "parcial" | "no";
+  dias_por_semana: number | null;
+  molestias: string | null;
+  comentarios: string | null;
+};
+
 export type RoutineRequest = {
   id: string;
   socio_id: string;
@@ -55,8 +64,23 @@ export type RoutineRequest = {
   lesiones: string | null;
   sesiones_semana: number | null;
   status: RequestStatus;
+  prev_routine_id: string | null;
+  feedback: RoutineFeedback | null;
   created_at: string;
   profiles?: Profile | null;
+};
+
+export type WorkoutLog = {
+  id: string;
+  socio_id: string;
+  routine_id: string | null;
+  exercise: string;
+  log_date: string;
+  sets: number | null;
+  reps: number;
+  weight_kg: number | null;
+  logged_by: string | null;
+  created_at: string;
 };
 
 export type RoutineDay = {

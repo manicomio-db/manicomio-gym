@@ -86,6 +86,23 @@ export default async function SocioRutinaPage() {
         </CardContent>
       </Card>
 
+      {routine && (
+        <Card className="border-primary/40">
+          <CardHeader>
+            <CardTitle>Anota tu progreso</CardTitle>
+            <CardDescription>
+              Registra el peso y las repeticiones de cada ejercicio. Tu próxima rutina se diseñará a
+              partir de cómo avanzaste.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button size="sm" render={<Link href="/socio/progreso" />}>
+              Ir a Mi progreso
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle>Pedir nueva rutina</CardTitle>
@@ -114,7 +131,7 @@ export default async function SocioRutinaPage() {
               </Button>
             </div>
           ) : (
-            <RequestRoutineForm />
+            <RequestRoutineForm hasPreviousRoutine={Boolean(routine)} />
           )}
         </CardContent>
       </Card>

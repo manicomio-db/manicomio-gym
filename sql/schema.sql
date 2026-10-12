@@ -215,6 +215,29 @@ create table if not exists public.health_profiles (
   updated_at timestamptz not null default now()
 );
 
+-- Registro de entrenamientos (peso y repeticiones por ejercicio) para medir el
+-- progreso dentro de una rutina y diseñar la siguiente a partir de él.
+create table if not exists public.workout_logs (
+  id uuid primary key default gen_random_uuid(),
+  socio_id uuid not null references public.profiles (id) on delete cascade,
+  routine_id uuid references public.routines (id) on delete set null,
+  exercise text not null,
+  log_date date not null,
+  sets integer check (sets is null or sets > 0),
+  reps integer not null check (reps > 0),
+  weight_kg numeric(6, 2) check (weight_kg is null or weight_kg >= 0),
+  logged_by uuid references public.profiles (id),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists workout_logs_socio_idx
+  on public.workout_logs (socio_id, routine_id, log_date);
+
+-- La solicitud de nueva rutina guarda la rutina anterior y cómo le fue al socio.
+alter table public.routine_requests
+  add column if not exists prev_routine_id uuid references public.routines (id) on delete set null;
+alter table public.routine_requests add column if not exists feedback jsonb;
+
 -- ----------------------------------------------------------------------------
 -- Deduplicar filas de corridas anteriores del seed y asegurar nombres únicos
 -- en los catálogos (idempotente: seguro correrlo las veces que sea necesario).
@@ -351,6 +374,7 @@ alter table public.expenses enable row level security;
 alter table public.payment_proofs enable row level security;
 alter table public.messages enable row level security;
 alter table public.health_profiles enable row level security;
+alter table public.workout_logs enable row level security;
 
 -- profiles ---------------------------------------------------------------
 drop policy if exists "profiles_select_own_or_staff" on public.profiles;
@@ -553,6 +577,21 @@ create policy "health_profiles_update_own_or_staff" on public.health_profiles
 drop policy if exists "health_profiles_delete_dueno" on public.health_profiles;
 create policy "health_profiles_delete_dueno" on public.health_profiles
   for delete using (public.is_dueno());
+
+-- workout_logs (progreso de entrenamiento) ---------------------------------
+-- El socio registra y corrige los suyos; staff/dueño pueden registrar y
+-- corregir los de cualquiera (por ejemplo, anotando en el piso del gimnasio).
+drop policy if exists "workout_logs_select_own_or_staff" on public.workout_logs;
+create policy "workout_logs_select_own_or_staff" on public.workout_logs
+  for select using (socio_id = auth.uid() or public.is_staff_or_dueno());
+
+drop policy if exists "workout_logs_insert_own_or_staff" on public.workout_logs;
+create policy "workout_logs_insert_own_or_staff" on public.workout_logs
+  for insert with check (socio_id = auth.uid() or public.is_staff_or_dueno());
+
+drop policy if exists "workout_logs_delete_own_or_staff" on public.workout_logs;
+create policy "workout_logs_delete_own_or_staff" on public.workout_logs
+  for delete using (socio_id = auth.uid() or public.is_staff_or_dueno());
 
 -- ----------------------------------------------------------------------------
 -- Storage: bucket público para fotos de productos

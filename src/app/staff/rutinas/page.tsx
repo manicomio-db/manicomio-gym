@@ -2,7 +2,8 @@ import { requireProfile } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ageFromBirthDate, assessRisk, bmi, bmiCategory } from "@/lib/health";
-import type { HealthProfile, RoutineRequest } from "@/lib/types";
+import { analyzeProgress } from "@/lib/progress";
+import type { HealthProfile, RoutineRequest, WorkoutLog } from "@/lib/types";
 import { RoutineComposer } from "./routine-composer";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -33,6 +34,17 @@ export default async function StaffRutinasPage() {
     )
     .returns<HealthProfile[]>();
   const healthBySocio = new Map((healthRows ?? []).map((h) => [h.socio_id, h]));
+
+  // Progreso registrado durante la rutina anterior de cada solicitud.
+  const prevIds = activos.map((r) => r.prev_routine_id).filter((id): id is string => Boolean(id));
+  const { data: logRows } = prevIds.length
+    ? await supabase.from("workout_logs").select("*").in("routine_id", prevIds).returns<WorkoutLog[]>()
+    : { data: [] as WorkoutLog[] };
+  const logsByRoutine = new Map<string, WorkoutLog[]>();
+  for (const l of logRows ?? []) {
+    if (!l.routine_id) continue;
+    logsByRoutine.set(l.routine_id, [...(logsByRoutine.get(l.routine_id) ?? []), l]);
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -73,6 +85,14 @@ export default async function StaffRutinasPage() {
                       imcLabel: bmiCategory(imc),
                       level: risk.level,
                       reasons: risk.reasons,
+                    }
+                  : null
+              }
+              previous={
+                r.prev_routine_id
+                  ? {
+                      progress: analyzeProgress(logsByRoutine.get(r.prev_routine_id) ?? []),
+                      feedback: r.feedback,
                     }
                   : null
               }
