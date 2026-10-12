@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { requireProfile } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { Routine, RoutineRequest } from "@/lib/types";
 import { RequestRoutineForm } from "./request-form";
 
@@ -13,7 +15,7 @@ const STATUS_LABEL: Record<string, string> = {
 export default async function SocioRutinaPage() {
   const { profile, supabase } = await requireProfile();
 
-  const [{ data: routine }, { data: requests }] = await Promise.all([
+  const [{ data: routine }, { data: requests }, { data: health }] = await Promise.all([
     supabase
       .from("routines")
       .select("*")
@@ -27,6 +29,7 @@ export default async function SocioRutinaPage() {
       .eq("socio_id", profile.id)
       .order("created_at", { ascending: false })
       .returns<RoutineRequest[]>(),
+    supabase.from("health_profiles").select("socio_id").eq("socio_id", profile.id).maybeSingle(),
   ]);
 
   const activeRequest = requests?.find(
@@ -56,6 +59,12 @@ export default async function SocioRutinaPage() {
             <div className="flex flex-col gap-4">
               {routine.contenido.resumen && (
                 <p className="text-sm text-muted-foreground">{routine.contenido.resumen}</p>
+              )}
+              {routine.contenido.precauciones && (
+                <div className="rounded-md border border-primary/50 bg-primary/10 p-3 text-sm">
+                  <p className="font-semibold">Precauciones para ti</p>
+                  <p className="mt-1 whitespace-pre-wrap">{routine.contenido.precauciones}</p>
+                </div>
               )}
               {routine.contenido.dias?.map((dia, i) => (
                 <div key={i} className="rounded-md border p-3">
@@ -93,6 +102,16 @@ export default async function SocioRutinaPage() {
                 Ya tienes una solicitud en trámite. Cuando tu instructor te asigne la rutina,
                 aparecerá arriba y podrás pedir una nueva.
               </p>
+            </div>
+          ) : !health ? (
+            <div className="flex flex-col gap-3 rounded-md border border-primary/50 p-3">
+              <p className="text-sm">
+                Antes de pedir una rutina, llena tu ficha de salud. Así tu instructor la adapta a tu
+                edad, condición y lesiones.
+              </p>
+              <Button size="sm" className="w-fit" render={<Link href="/socio/ficha" />}>
+                Llenar mi ficha
+              </Button>
             </div>
           ) : (
             <RequestRoutineForm />

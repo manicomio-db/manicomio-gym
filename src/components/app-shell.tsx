@@ -12,6 +12,7 @@ type NavItem = { href: string; label: string };
 const NAV: Record<Role, NavItem[]> = {
   socio: [
     { href: "/socio", label: "Mi cuenta" },
+    { href: "/socio/ficha", label: "Mi ficha" },
     { href: "/socio/rutina", label: "Mi rutina" },
     { href: "/socio/tienda", label: "Tienda" },
     { href: "/socio/pago", label: "Mi pago" },
@@ -30,6 +31,7 @@ const NAV: Record<Role, NavItem[]> = {
   dueno: [
     { href: "/dueno", label: "Dashboard" },
     { href: "/dueno/ingresos", label: "Ingresos" },
+    { href: "/dueno/informes", label: "Informes" },
     { href: "/dueno/gastos", label: "Gastos" },
     { href: "/staff/acceso", label: "Control de acceso" },
     { href: "/staff/rutinas", label: "Rutinas" },

@@ -59,8 +59,12 @@ export function RequestRoutineForm() {
         />
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="lesiones">Lesiones o condiciones previas</Label>
-        <Textarea id="lesiones" name="lesiones" placeholder="Rodilla, hombro, ninguna..." />
+        <Label htmlFor="lesiones">Molestias o lesiones de hoy (opcional)</Label>
+        <Textarea
+          id="lesiones"
+          name="lesiones"
+          placeholder="Ej: me duele el hombro derecho desde hace 2 semanas. Tu historial completo ya está en tu ficha."
+        />
       </div>
       {state.error && <p className="text-sm text-destructive">{state.error}</p>}
       <Button type="submit" disabled={pending} className="w-fit">

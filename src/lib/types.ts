@@ -66,7 +66,33 @@ export type RoutineDay = {
 
 export type RoutineContent = {
   resumen: string;
+  /** Advertencias y adaptaciones según la ficha de salud del socio. */
+  precauciones?: string;
   dias: RoutineDay[];
+};
+
+export type HealthSex = "femenino" | "masculino" | "otro" | "prefiero_no_decir";
+export type ActivityLevel = "sedentario" | "ligero" | "moderado" | "activo";
+
+export type HealthProfile = {
+  socio_id: string;
+  birth_date: string;
+  sex: HealthSex | null;
+  weight_kg: number | null;
+  height_cm: number | null;
+  activity_level: ActivityLevel | null;
+  conditions: string[];
+  conditions_other: string | null;
+  injuries: string | null;
+  medications: string | null;
+  parq: Record<string, boolean>;
+  emergency_name: string | null;
+  emergency_phone: string | null;
+  notes: string | null;
+  consent_at: string | null;
+  filled_by: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
 export type Routine = {

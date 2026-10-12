@@ -8,8 +8,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
+import { RISK_LABEL, type RiskLevel } from "@/lib/health";
 import type { RoutineContent } from "@/lib/types";
 import { saveRoutine, markInProgress, discardRequest } from "../actions";
+
+export type HealthInfo = {
+  age: number;
+  imc: number | null;
+  imcLabel: string | null;
+  level: RiskLevel;
+  reasons: string[];
+};
 
 type RequestInfo = {
   id: string;
@@ -28,7 +38,13 @@ const STATUS_LABEL: Record<string, string> = {
   completado: "Completado",
 };
 
-export function RoutineComposer({ request }: { request: RequestInfo }) {
+export function RoutineComposer({
+  request,
+  health,
+}: {
+  request: RequestInfo;
+  health: HealthInfo | null;
+}) {
   const [expanded, setExpanded] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -43,6 +59,7 @@ export function RoutineComposer({ request }: { request: RequestInfo }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          socio_id: request.socioId,
           objetivo: request.objetivo,
           nivel: request.nivel,
           lesiones: request.lesiones,
@@ -157,6 +174,47 @@ export function RoutineComposer({ request }: { request: RequestInfo }) {
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
+        {health ? (
+          <div
+            className={
+              health.level === "consultar_medico"
+                ? "rounded-md border-2 border-red-500 bg-red-500/10 p-3 text-sm"
+                : health.level === "precaucion"
+                  ? "rounded-md border-2 border-yellow-500 bg-yellow-500/10 p-3 text-sm"
+                  : "rounded-md border-2 border-green-500 bg-green-500/10 p-3 text-sm"
+            }
+          >
+            <p className="font-semibold">
+              {RISK_LABEL[health.level]} · {health.age} años
+              {health.imc ? ` · IMC ${health.imc} (${health.imcLabel})` : ""}
+            </p>
+            {health.reasons.length > 0 && (
+              <ul className="mt-1 list-disc pl-5">
+                {health.reasons.map((r) => (
+                  <li key={r}>{r}</li>
+                ))}
+              </ul>
+            )}
+            <Link
+              href={`/staff/socios/${request.socioId}/ficha`}
+              className="mt-2 inline-block underline"
+            >
+              Ver ficha completa
+            </Link>
+          </div>
+        ) : (
+          <div className="rounded-md border-2 border-yellow-500 bg-yellow-500/10 p-3 text-sm">
+            <p className="font-semibold">Este socio no tiene ficha de salud.</p>
+            <p>La rutina no podrá adaptarse a su edad, condiciones ni lesiones.</p>
+            <Link
+              href={`/staff/socios/${request.socioId}/ficha`}
+              className="mt-2 inline-block underline"
+            >
+              Llenar la ficha con el socio
+            </Link>
+          </div>
+        )}
+
         <div className="flex flex-wrap gap-2">
           <Button type="button" onClick={generar} disabled={generating}>
             {generating ? "Generando..." : "Generar con IA"}
@@ -199,6 +257,14 @@ export function RoutineComposer({ request }: { request: RequestInfo }) {
               <Textarea
                 value={contenido.resumen}
                 onChange={(e) => setContenido((c) => ({ ...c, resumen: e.target.value }))}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label>Precauciones para el socio (se le muestran destacadas)</Label>
+              <Textarea
+                value={contenido.precauciones ?? ""}
+                onChange={(e) => setContenido((c) => ({ ...c, precauciones: e.target.value }))}
               />
             </div>
 

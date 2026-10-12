@@ -192,6 +192,29 @@ create table if not exists public.messages (
   created_at timestamptz not null default now()
 );
 
+-- Ficha de salud (una por socio): edad, condiciones, lesiones, PAR-Q, contacto
+-- de emergencia. Sirve para adaptar la rutina y para los informes del dueño.
+create table if not exists public.health_profiles (
+  socio_id uuid primary key references public.profiles (id) on delete cascade,
+  birth_date date not null,
+  sex text check (sex in ('femenino', 'masculino', 'otro', 'prefiero_no_decir')),
+  weight_kg numeric(5, 1),
+  height_cm numeric(4, 1),
+  activity_level text check (activity_level in ('sedentario', 'ligero', 'moderado', 'activo')),
+  conditions text[] not null default '{}',
+  conditions_other text,
+  injuries text,
+  medications text,
+  parq jsonb not null default '{}'::jsonb,
+  emergency_name text,
+  emergency_phone text,
+  notes text,
+  consent_at timestamptz,
+  filled_by uuid references public.profiles (id),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 -- ----------------------------------------------------------------------------
 -- Deduplicar filas de corridas anteriores del seed y asegurar nombres únicos
 -- en los catálogos (idempotente: seguro correrlo las veces que sea necesario).
@@ -327,6 +350,7 @@ alter table public.expense_categories enable row level security;
 alter table public.expenses enable row level security;
 alter table public.payment_proofs enable row level security;
 alter table public.messages enable row level security;
+alter table public.health_profiles enable row level security;
 
 -- profiles ---------------------------------------------------------------
 drop policy if exists "profiles_select_own_or_staff" on public.profiles;
@@ -508,6 +532,26 @@ create policy "messages_insert" on public.messages
 
 drop policy if exists "messages_delete_dueno" on public.messages;
 create policy "messages_delete_dueno" on public.messages
+  for delete using (public.is_dueno());
+
+-- health_profiles (ficha de salud) ----------------------------------------
+-- El socio ve y llena la suya; staff/dueño ven y llenan la de cualquiera (por
+-- ejemplo al registrar a alguien en persona). Solo el dueño puede borrarla.
+drop policy if exists "health_profiles_select_own_or_staff" on public.health_profiles;
+create policy "health_profiles_select_own_or_staff" on public.health_profiles
+  for select using (socio_id = auth.uid() or public.is_staff_or_dueno());
+
+drop policy if exists "health_profiles_insert_own_or_staff" on public.health_profiles;
+create policy "health_profiles_insert_own_or_staff" on public.health_profiles
+  for insert with check (socio_id = auth.uid() or public.is_staff_or_dueno());
+
+drop policy if exists "health_profiles_update_own_or_staff" on public.health_profiles;
+create policy "health_profiles_update_own_or_staff" on public.health_profiles
+  for update using (socio_id = auth.uid() or public.is_staff_or_dueno())
+  with check (socio_id = auth.uid() or public.is_staff_or_dueno());
+
+drop policy if exists "health_profiles_delete_dueno" on public.health_profiles;
+create policy "health_profiles_delete_dueno" on public.health_profiles
   for delete using (public.is_dueno());
 
 -- ----------------------------------------------------------------------------

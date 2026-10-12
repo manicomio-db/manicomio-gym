@@ -5,7 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { Membership, MembershipPlan, Profile } from "@/lib/types";
+import Link from "next/link";
+import { assessRisk, RISK_LABEL, type RiskLevel } from "@/lib/health";
+import type { HealthProfile, Membership, MembershipPlan, Profile } from "@/lib/types";
 import { MembershipDialog } from "./membership-dialog";
 import { RegisterPaymentDialog } from "./register-payment-dialog";
 import { ResetPasswordDialog } from "./reset-password-dialog";
@@ -34,7 +36,7 @@ export default async function StaffSociosPage({
         : sociosQuery.ilike("full_name", `%${q}%`);
   }
 
-  const [{ data: socios }, { data: memberships }, { data: plans }] = await Promise.all([
+  const [{ data: socios }, { data: memberships }, { data: plans }, { data: healthRows }] = await Promise.all([
     sociosQuery.returns<Profile[]>(),
     supabase
       .from("memberships")
@@ -42,7 +44,12 @@ export default async function StaffSociosPage({
       .order("end_date", { ascending: false })
       .returns<Membership[]>(),
     supabase.from("membership_plans").select("*").returns<MembershipPlan[]>(),
+    supabase.from("health_profiles").select("*").returns<HealthProfile[]>(),
   ]);
+
+  const riskBySocio = new Map<string, RiskLevel>(
+    (healthRows ?? []).map((h) => [h.socio_id, assessRisk(h).level])
+  );
 
   const latestBySocio = new Map<string, Membership>();
   for (const m of memberships ?? []) {
@@ -134,9 +141,24 @@ export default async function StaffSociosPage({
                     </p>
                   </div>
                 </div>
-                <Badge variant={expired ? "destructive" : "default"}>
-                  {expired ? "Vencida" : "Activa"}
-                </Badge>
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  {riskBySocio.has(socio.id) ? (
+                    riskBySocio.get(socio.id) !== "ninguno" && (
+                      <Badge
+                        variant={
+                          riskBySocio.get(socio.id) === "consultar_medico" ? "destructive" : "secondary"
+                        }
+                      >
+                        {RISK_LABEL[riskBySocio.get(socio.id)!]}
+                      </Badge>
+                    )
+                  ) : (
+                    <Badge variant="outline">Sin ficha</Badge>
+                  )}
+                  <Badge variant={expired ? "destructive" : "default"}>
+                    {expired ? "Vencida" : "Activa"}
+                  </Badge>
+                </div>
               </CardHeader>
               <CardContent className="flex items-center justify-between">
                 <div className="text-sm text-muted-foreground">
@@ -151,6 +173,14 @@ export default async function StaffSociosPage({
                     plans={plans ?? []}
                   />
                   <QrDialog memberNumber={socio.member_number} socioNombre={socio.full_name ?? "Socio"} />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    nativeButton={false}
+                    render={<Link href={`/staff/socios/${socio.id}/ficha`} />}
+                  >
+                    Ficha de salud
+                  </Button>
                   {isDueno && (
                     <MembershipDialog
                       socioId={socio.id}

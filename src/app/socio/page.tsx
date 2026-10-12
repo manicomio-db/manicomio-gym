@@ -26,6 +26,12 @@ export default async function SocioHomePage() {
     .limit(1)
     .maybeSingle<Membership>();
 
+  const { data: health } = await supabase
+    .from("health_profiles")
+    .select("socio_id")
+    .eq("socio_id", profile.id)
+    .maybeSingle();
+
   const today = todayLocal();
   const isExpired = membership ? membership.end_date < today : true;
   const daysLeft = membership
@@ -53,6 +59,23 @@ export default async function SocioHomePage() {
           )}
         </div>
       </div>
+
+      {!health && (
+        <Card className="border-primary">
+          <CardHeader>
+            <CardTitle className="text-primary">Completa tu ficha de salud</CardTitle>
+            <CardDescription>
+              Edad, condiciones y lesiones: así tu instructor puede adaptar tu rutina y cuidarte
+              mejor. Toma 3 minutos.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button size="sm" render={<Link href="/socio/ficha" />}>
+              Llenar mi ficha
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {(isExpired || expiringSoon) && (
         <Card className="border-destructive/50">

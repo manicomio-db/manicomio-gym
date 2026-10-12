@@ -20,6 +20,16 @@ export async function requestRoutine(
     return { error: "Falta el objetivo.", success: false };
   }
 
+  const { data: health } = await supabase
+    .from("health_profiles")
+    .select("socio_id")
+    .eq("socio_id", profile.id)
+    .maybeSingle();
+
+  if (!health) {
+    return { error: "Primero llena tu ficha de salud (menú Mi ficha).", success: false };
+  }
+
   const { data: existing } = await supabase
     .from("routine_requests")
     .select("id")
