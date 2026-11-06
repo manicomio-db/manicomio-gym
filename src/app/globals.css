@@ -7,9 +7,11 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-jakarta);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-anton);
+  --font-heading: var(--font-jakarta);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -48,73 +50,102 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/*
+ * Tema claro y cálido (igual que Nutrición Manicomio): fondo marfil, tarjetas blancas, tinta
+ * azul-gris para el texto. El rojo-naranja de Manicomio Gym es el color principal; verde y
+ * ámbar indican estados (activo, precaución) y el rojo de error queda reservado a lo vencido.
+ */
 :root {
-  --background: oklch(0.09 0.004 30);
-  --foreground: oklch(0.97 0 0);
-  --card: oklch(0.13 0.012 25);
-  --card-foreground: oklch(0.97 0 0);
-  --popover: oklch(0.12 0.012 25);
-  --popover-foreground: oklch(0.97 0 0);
-  --primary: oklch(0.6 0.26 18);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.19 0.012 25);
-  --secondary-foreground: oklch(0.97 0 0);
-  --muted: oklch(0.16 0.01 25);
-  --muted-foreground: oklch(0.65 0.02 25);
-  --accent: oklch(0.22 0.05 18);
-  --accent-foreground: oklch(0.97 0 0);
-  --destructive: oklch(0.55 0.22 38);
-  --border: oklch(0.55 0.22 18 / 22%);
-  --input: oklch(1 0 0 / 10%);
-  --ring: oklch(0.6 0.26 18);
-  --chart-1: oklch(0.6 0.26 18);
-  --chart-2: oklch(0.75 0.15 18);
-  --chart-3: oklch(0.5 0.2 18);
-  --chart-4: oklch(0.4 0.15 18);
-  --chart-5: oklch(0.85 0.05 18);
-  --radius: 0.35rem;
-  --sidebar: oklch(0.06 0.004 30);
-  --sidebar-foreground: oklch(0.97 0 0);
-  --sidebar-primary: oklch(0.6 0.26 18);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.16 0.04 18);
-  --sidebar-accent-foreground: oklch(0.97 0 0);
-  --sidebar-border: oklch(0.55 0.22 18 / 20%);
-  --sidebar-ring: oklch(0.6 0.26 18);
+  color-scheme: light;
+
+  --background: oklch(0.978 0.007 75);
+  --foreground: oklch(0.24 0.028 265);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.24 0.028 265);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.24 0.028 265);
+
+  --primary: oklch(0.58 0.225 28);
+  --primary-foreground: oklch(0.99 0.004 75);
+  --secondary: oklch(0.955 0.012 75);
+  --secondary-foreground: oklch(0.3 0.03 265);
+  --muted: oklch(0.955 0.01 75);
+  --muted-foreground: oklch(0.5 0.025 265);
+  --accent: oklch(0.953 0.04 55);
+  --accent-foreground: oklch(0.38 0.1 40);
+  --destructive: oklch(0.52 0.21 20);
+
+  --border: oklch(0.915 0.01 75);
+  --input: oklch(0.88 0.012 75);
+  --ring: oklch(0.65 0.2 30);
+
+  --chart-1: oklch(0.58 0.225 28);
+  --chart-2: oklch(0.8 0.15 80);
+  --chart-3: oklch(0.62 0.11 190);
+  --chart-4: oklch(0.66 0.13 240);
+  --chart-5: oklch(0.68 0.1 150);
+  --success: oklch(0.5 0.14 155);
+  --warning: oklch(0.58 0.15 70);
+
+  --radius: 0.75rem;
+
+  --sidebar: oklch(0.19 0.02 265);
+  --sidebar-foreground: oklch(0.95 0.005 260);
+  --sidebar-primary: oklch(0.58 0.225 28);
+  --sidebar-primary-foreground: oklch(0.99 0.004 75);
+  --sidebar-accent: oklch(1 0 0 / 9%);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.65 0.2 30);
+
+  /* Acentos de marca: grafito, naranja y plata */
+  --graphite: oklch(0.2 0.022 265);
+  --graphite-2: oklch(0.14 0.018 265);
+  --orange: oklch(0.68 0.19 48);
+  --silver: oklch(0.87 0.008 260);
 }
 
+/* Modo oscuro suave: gris azulado (no negro), mismo rojo-naranja de marca. */
 .dark {
-  --background: oklch(0.09 0.004 30);
-  --foreground: oklch(0.97 0 0);
-  --card: oklch(0.13 0.012 25);
-  --card-foreground: oklch(0.97 0 0);
-  --popover: oklch(0.12 0.012 25);
-  --popover-foreground: oklch(0.97 0 0);
-  --primary: oklch(0.6 0.26 18);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.19 0.012 25);
-  --secondary-foreground: oklch(0.97 0 0);
-  --muted: oklch(0.16 0.01 25);
-  --muted-foreground: oklch(0.65 0.02 25);
-  --accent: oklch(0.22 0.05 18);
-  --accent-foreground: oklch(0.97 0 0);
-  --destructive: oklch(0.55 0.22 38);
-  --border: oklch(0.55 0.22 18 / 22%);
-  --input: oklch(1 0 0 / 10%);
-  --ring: oklch(0.6 0.26 18);
-  --chart-1: oklch(0.6 0.26 18);
-  --chart-2: oklch(0.75 0.15 18);
-  --chart-3: oklch(0.5 0.2 18);
-  --chart-4: oklch(0.4 0.15 18);
-  --chart-5: oklch(0.85 0.05 18);
-  --sidebar: oklch(0.06 0.004 30);
-  --sidebar-foreground: oklch(0.97 0 0);
-  --sidebar-primary: oklch(0.6 0.26 18);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.16 0.04 18);
-  --sidebar-accent-foreground: oklch(0.97 0 0);
-  --sidebar-border: oklch(0.55 0.22 18 / 20%);
-  --sidebar-ring: oklch(0.6 0.26 18);
+  color-scheme: dark;
+
+  --background: oklch(0.215 0.022 265);
+  --foreground: oklch(0.95 0.006 260);
+  --card: oklch(0.262 0.024 265);
+  --card-foreground: oklch(0.95 0.006 260);
+  --popover: oklch(0.285 0.024 265);
+  --popover-foreground: oklch(0.95 0.006 260);
+
+  --primary: oklch(0.63 0.22 29);
+  --primary-foreground: oklch(0.99 0.004 75);
+  --secondary: oklch(0.31 0.024 265);
+  --secondary-foreground: oklch(0.93 0.008 260);
+  --muted: oklch(0.3 0.022 265);
+  --muted-foreground: oklch(0.73 0.02 260);
+  --accent: oklch(0.34 0.055 45);
+  --accent-foreground: oklch(0.93 0.05 60);
+  --destructive: oklch(0.65 0.2 25);
+
+  --border: oklch(1 0 0 / 11%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.66 0.18 32);
+
+  --chart-1: oklch(0.65 0.22 29);
+  --chart-2: oklch(0.83 0.14 82);
+  --chart-3: oklch(0.72 0.11 190);
+  --chart-4: oklch(0.74 0.12 240);
+  --chart-5: oklch(0.76 0.1 150);
+  --success: oklch(0.74 0.15 155);
+  --warning: oklch(0.8 0.15 80);
+
+  --sidebar: oklch(0.17 0.022 265);
+  --sidebar-foreground: oklch(0.95 0.005 260);
+  --sidebar-primary: oklch(0.63 0.22 29);
+  --sidebar-primary-foreground: oklch(0.99 0.004 75);
+  --sidebar-accent: oklch(1 0 0 / 9%);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.66 0.18 32);
 }
 
 @layer base {
@@ -123,24 +154,156 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image:
+      radial-gradient(60rem 28rem at 50% -8rem, oklch(0.75 0.15 45 / 10%), transparent 70%),
+      radial-gradient(40rem 24rem at 100% 0%, oklch(0.7 0.1 190 / 7%), transparent 70%);
+    background-repeat: no-repeat;
+    /* Evita el desplazamiento horizontal en celular por cualquier elemento ancho. */
+    overflow-x: clip;
   }
   html {
     @apply font-sans;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
   }
   h1,
   h2 {
-    @apply font-heading uppercase tracking-tight;
+    @apply font-heading font-bold tracking-tight;
   }
 }
 
-.neon-text {
-  text-shadow:
-    0 0 8px oklch(0.6 0.26 18 / 70%),
-    0 0 20px oklch(0.6 0.26 18 / 45%);
+.dark body {
+  background-image:
+    radial-gradient(60rem 28rem at 50% -8rem, oklch(0.68 0.19 48 / 11%), transparent 70%),
+    radial-gradient(40rem 24rem at 100% 0%, oklch(0.62 0.11 190 / 9%), transparent 70%);
 }
 
+/* Marco de acento suave: borde fino del color de marca y halo cálido. */
 .neon-border {
   box-shadow:
-    0 0 0 1px oklch(0.6 0.26 18 / 50%),
-    0 0 16px oklch(0.6 0.26 18 / 25%);
+    0 0 0 1px oklch(0.58 0.225 28 / 28%),
+    0 12px 40px -12px oklch(0.58 0.225 28 / 30%);
+}
+
+.neon-text {
+  color: var(--primary);
+}
+
+/* ------------------------------------------------------------------ */
+/* Acentos de marca: líneas, formas y degradados (grafito · naranja · plata) */
+/* ------------------------------------------------------------------ */
+
+/* Línea fina con degradado rojo → naranja → plata. */
+.brand-line {
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--orange) 42%, var(--silver) 80%, transparent 100%);
+}
+
+/* Barra de acento en la parte superior de cada tarjeta. */
+[data-slot="card"] {
+  position: relative;
+}
+[data-slot="card"]::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--orange) 40%, var(--silver) 78%, transparent 100%);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* Superficies oscuras con líneas diagonales y un anillo metálico. */
+.brand-hero,
+.brand-bg {
+  position: relative;
+}
+/* .brand-lines no fija la posición: quien lo usa (fixed, sticky, relative) la define con sus clases. */
+.brand-hero,
+.brand-bg,
+.brand-lines {
+  isolation: isolate;
+}
+.brand-hero::before,
+.brand-bg::before,
+.brand-lines::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    118deg,
+    transparent 0 26px,
+    oklch(0.68 0.19 48 / 34%) 26px 28px,
+    transparent 28px 58px,
+    oklch(0.87 0.008 260 / 14%) 58px 59px
+  );
+  -webkit-mask-image: linear-gradient(100deg, transparent 25%, #000 88%);
+  mask-image: linear-gradient(100deg, transparent 25%, #000 88%);
+}
+.brand-hero::after,
+.brand-bg::after,
+.brand-lines::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  right: -3.5rem;
+  top: -4.5rem;
+  width: 11rem;
+  height: 11rem;
+  border-radius: 9999px;
+  border: 2px solid oklch(0.87 0.008 260 / 38%);
+  box-shadow:
+    0 0 0 14px oklch(0.68 0.19 48 / 11%),
+    inset 0 0 0 14px oklch(0.87 0.008 260 / 7%);
+}
+
+.brand-hero {
+  overflow: clip;
+  border-radius: 1.25rem;
+  color: oklch(0.98 0 0);
+  background:
+    linear-gradient(90deg, var(--primary), var(--orange) 45%, var(--silver) 82%, transparent) bottom / 100% 3px no-repeat,
+    linear-gradient(135deg, var(--graphite) 0%, var(--graphite-2) 100%);
+  box-shadow: 0 18px 40px -20px oklch(0.2 0.03 265 / 60%);
+}
+
+.brand-bg {
+  overflow: clip;
+  color: oklch(0.98 0 0);
+  background:
+    radial-gradient(42rem 24rem at 50% 0%, oklch(0.68 0.19 48 / 26%), transparent 70%),
+    linear-gradient(160deg, var(--graphite) 0%, var(--graphite-2) 100%);
+}
+.brand-bg::after {
+  right: auto;
+  left: -5rem;
+  top: auto;
+  bottom: -6rem;
+  width: 15rem;
+  height: 15rem;
+}
+
+/* Ajustes de superficies de marca en modo oscuro */
+.dark .brand-hero {
+  box-shadow:
+    0 0 0 1px oklch(1 0 0 / 9%),
+    0 18px 40px -20px oklch(0 0 0 / 60%);
+}
+.dark [data-slot="card"] {
+  box-shadow: 0 10px 28px -12px oklch(0 0 0 / 45%);
+}
+
+/* Respeta la preferencia de "reducir movimiento" del teléfono. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

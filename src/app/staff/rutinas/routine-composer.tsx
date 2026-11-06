@@ -188,10 +188,10 @@ export function RoutineComposer({
           <div
             className={
               health.level === "consultar_medico"
-                ? "rounded-md border-2 border-red-500 bg-red-500/10 p-3 text-sm"
+                ? "rounded-md border-2 border-destructive bg-destructive/10 p-3 text-sm"
                 : health.level === "precaucion"
-                  ? "rounded-md border-2 border-yellow-500 bg-yellow-500/10 p-3 text-sm"
-                  : "rounded-md border-2 border-green-500 bg-green-500/10 p-3 text-sm"
+                  ? "rounded-md border-2 border-warning bg-warning/10 p-3 text-sm"
+                  : "rounded-md border-2 border-success bg-success/10 p-3 text-sm"
             }
           >
             <p className="font-semibold">
@@ -213,7 +213,7 @@ export function RoutineComposer({
             </Link>
           </div>
         ) : (
-          <div className="rounded-md border-2 border-yellow-500 bg-yellow-500/10 p-3 text-sm">
+          <div className="rounded-md border-2 border-warning bg-warning/10 p-3 text-sm">
             <p className="font-semibold">Este socio no tiene ficha de salud.</p>
             <p>La rutina no podrá adaptarse a su edad, condiciones ni lesiones.</p>
             <Link
@@ -306,23 +306,27 @@ export function RoutineComposer({
                   </Button>
                 </div>
                 {dia.ejercicios.map((ej, j) => (
-                  <div key={j} className="grid grid-cols-[2fr_1fr_1fr_2fr_auto] gap-2">
+                  <div key={j} className="grid grid-cols-[1fr_1fr_auto] gap-2 sm:grid-cols-[2fr_1fr_1fr_2fr_auto]">
                     <Input
+                      className="order-1 col-span-3 sm:col-span-1"
                       placeholder="Ejercicio"
                       value={ej.nombre}
                       onChange={(e) => updateEjercicio(i, j, "nombre", e.target.value)}
                     />
                     <Input
+                      className="order-2"
                       placeholder="Series"
                       value={ej.series}
                       onChange={(e) => updateEjercicio(i, j, "series", e.target.value)}
                     />
                     <Input
+                      className="order-3"
                       placeholder="Reps"
                       value={ej.reps}
                       onChange={(e) => updateEjercicio(i, j, "reps", e.target.value)}
                     />
                     <Input
+                      className="order-5 col-span-3 sm:order-4 sm:col-span-1"
                       placeholder="Notas"
                       value={ej.notas ?? ""}
                       onChange={(e) => updateEjercicio(i, j, "notas", e.target.value)}
@@ -331,6 +335,8 @@ export function RoutineComposer({
                       type="button"
                       size="sm"
                       variant="ghost"
+                      className="order-4 sm:order-5"
+                      aria-label="Quitar ejercicio"
                       onClick={() => removeEjercicio(i, j)}
                     >
                       ✕

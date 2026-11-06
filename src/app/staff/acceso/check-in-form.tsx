@@ -97,15 +97,15 @@ export function CheckInForm() {
           <div
             className={
               state.result.status === "activo"
-                ? "flex flex-col gap-3 rounded-md border-2 border-green-500 bg-green-500/15 p-4"
-                : "flex flex-col gap-3 rounded-md border-2 border-red-500 bg-red-500/15 p-4"
+                ? "flex flex-col gap-3 rounded-md border-2 border-success bg-success/15 p-4"
+                : "flex flex-col gap-3 rounded-md border-2 border-destructive bg-destructive/15 p-4"
             }
           >
             <p
               className={
                 state.result.status === "activo"
-                  ? "text-xl font-bold text-green-400"
-                  : "text-xl font-bold text-red-400"
+                  ? "text-xl font-bold text-success"
+                  : "text-xl font-bold text-destructive"
               }
             >
               {state.result.alreadyRegistered
@@ -137,7 +137,7 @@ export function CheckInForm() {
                   )}
                 </div>
               </div>
-              <Badge variant={state.result.status === "activo" ? "default" : "destructive"}>
+              <Badge variant={state.result.status === "activo" ? "success" : "destructive"}>
                 {STATUS_LABEL[state.result.status]}
               </Badge>
             </div>

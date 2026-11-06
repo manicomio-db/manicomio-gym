@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatDateTimeLocal } from "@/lib/date";
 import type { Message } from "@/lib/types";
 import { sendMessage } from "../actions";
+import { PageHeader } from "@/components/page-header";
 
 const ROLE_LABEL: Record<string, string> = {
   socio: "Tú",
@@ -24,10 +25,7 @@ export default async function SocioMensajesPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Mensajes</h1>
-        <p className="text-muted-foreground">Escríbenos tus dudas o comentarios.</p>
-      </div>
+      <PageHeader title="Mensajes" subtitle="Escríbenos tus dudas o comentarios." />
 
       <Card>
         <CardHeader>

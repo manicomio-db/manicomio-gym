@@ -14,6 +14,7 @@ import { ResetPasswordDialog } from "./reset-password-dialog";
 import { AvatarDialog } from "./avatar-dialog";
 import { QrDialog } from "./qr-dialog";
 import { deleteSocio, deleteMembership } from "@/app/dueno/actions";
+import { PageHeader } from "@/components/page-header";
 
 export default async function StaffSociosPage({
   searchParams,
@@ -75,10 +76,7 @@ export default async function StaffSociosPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Socios</h1>
-        <p className="text-muted-foreground">Consulta y actualiza el vencimiento de membresías.</p>
-      </div>
+      <PageHeader title="Socios" subtitle="Consulta y actualiza el vencimiento de membresías." />
 
       <form method="get" className="flex flex-wrap items-end gap-3">
         <div className="flex flex-col gap-2">
@@ -120,7 +118,7 @@ export default async function StaffSociosPage({
           const expired = membership ? membership.end_date < today : true;
           return (
             <Card key={socio.id}>
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-3">
                   <AvatarDialog
                     socioId={socio.id}
@@ -155,12 +153,12 @@ export default async function StaffSociosPage({
                   ) : (
                     <Badge variant="outline">Sin ficha</Badge>
                   )}
-                  <Badge variant={expired ? "destructive" : "default"}>
+                  <Badge variant={expired ? "destructive" : "success"}>
                     {expired ? "Vencida" : "Activa"}
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="flex items-center justify-between">
+              <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="text-sm text-muted-foreground">
                   {membership
                     ? `Plan: ${membership.membership_plans?.name ?? "—"} · Vence: ${membership.end_date}`

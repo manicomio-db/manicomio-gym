@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { login, type AuthState } from "../actions";
+import { AuthShell } from "@/components/auth-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,8 +27,8 @@ export default function LoginPage() {
   const [state, formAction, pending] = useActionState(login, initialState);
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-6 p-6">
-      <Image src="/logo.png" alt="Manicomio Gym" width={1320} height={1283} className="w-40" priority />
+    <AuthShell>
+      <Image src="/logo.png" alt="Manicomio Gym" width={1320} height={1283} className="w-28 rounded-3xl shadow-2xl shadow-primary/40 ring-1 ring-white/20 sm:w-32" priority />
       <Card className="w-full max-w-sm neon-border">
         <CardHeader>
           <CardTitle>Iniciar sesión</CardTitle>
@@ -57,11 +58,13 @@ export default function LoginPage() {
               {pending ? "Entrando..." : "Entrar"}
             </Button>
           </form>
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            <Link href="/forgot-password" className="underline">
+          <p className="mt-4 text-center text-sm">
+            <Link href="/forgot-password" className="font-medium underline underline-offset-4">
               ¿Olvidaste tu contraseña?
-            </Link>{" "}
-            (solo si te registraste con correo — si eres socio, pide ayuda a tu instructor)
+            </Link>
+          </p>
+          <p className="mt-1 text-center text-xs text-muted-foreground">
+            Si te registraste con usuario (sin correo), pide a tu instructor que la restablezca.
           </p>
           <p className="mt-4 text-center text-sm text-muted-foreground">
             ¿Eres socio nuevo?{" "}
@@ -76,6 +79,6 @@ export default function LoginPage() {
           </p>
         </CardContent>
       </Card>
-    </div>
+    </AuthShell>
   );
 }

@@ -2,6 +2,7 @@ import { requireProfile } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import type { ExpenseCategory, Product } from "@/lib/types";
 import { ProductForm, ProductCard } from "./product-form";
+import { PageHeader } from "@/components/page-header";
 
 export default async function DuenoTiendaPage() {
   const { supabase } = await requireProfile();
@@ -16,10 +17,7 @@ export default async function DuenoTiendaPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Tienda</h1>
-        <p className="text-muted-foreground">Catálogo, stock e ingresos por ventas.</p>
-      </div>
+      <PageHeader title="Tienda" subtitle="Catálogo, stock e ingresos por ventas." />
 
       <Card>
         <CardHeader>

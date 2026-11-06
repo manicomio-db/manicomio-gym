@@ -7,6 +7,7 @@ import type { Profile, Routine, RoutineRequest, WorkoutLog } from "@/lib/types";
 import { WorkoutLogForm } from "../../../../workout-log-form";
 import { ProgressTable } from "../../../../progress-table";
 import { WorkoutHistory } from "../../../../workout-history";
+import { PageHeader } from "@/components/page-header";
 
 export default async function StaffProgresoPage({
   params,
@@ -53,17 +54,14 @@ export default async function StaffProgresoPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <Link href="/staff/socios" className="text-sm text-muted-foreground underline">
+      <div className="flex flex-col gap-3">
+        <Link href="/staff/socios" className="inline-flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
           ← Socios
         </Link>
-        <h1 className="text-2xl font-bold">
-          Progreso — {socio?.full_name ?? "Socio"}{" "}
-          <span className="text-lg font-normal text-muted-foreground">#{socio?.member_number}</span>
-        </h1>
-        <p className="text-muted-foreground">
-          {routine ? `Rutina actual: ${routine.title}` : "Aún no tiene una rutina asignada."}
-        </p>
+        <PageHeader
+          title={`Progreso — ${socio?.full_name ?? "Socio"}`}
+          subtitle={`#${socio?.member_number ?? ""} · ${routine ? `Rutina actual: ${routine.title}` : "Aún no tiene una rutina asignada."}`}
+        />
       </div>
 
       <Card>

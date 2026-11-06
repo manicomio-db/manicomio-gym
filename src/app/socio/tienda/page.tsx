@@ -2,6 +2,7 @@ import { requireProfile } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { Product } from "@/lib/types";
+import { PageHeader } from "@/components/page-header";
 
 export default async function SocioTiendaPage() {
   const { supabase } = await requireProfile();
@@ -14,12 +15,7 @@ export default async function SocioTiendaPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Tienda</h1>
-        <p className="text-muted-foreground">
-          Productos disponibles en recepción. Pregunta al staff para comprarlos.
-        </p>
-      </div>
+      <PageHeader title="Tienda" subtitle="Productos disponibles en recepción. Pregunta al staff para comprarlos." />
 
       {products && products.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

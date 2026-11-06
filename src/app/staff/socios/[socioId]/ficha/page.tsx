@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ageFromBirthDate, assessRisk, bmi, bmiCategory, RISK_LABEL } from "@/lib/health";
 import type { HealthProfile, Profile } from "@/lib/types";
 import { HealthProfileForm } from "../../../../health-profile-form";
+import { PageHeader } from "@/components/page-header";
 
 export default async function StaffFichaPage({
   params,
@@ -29,24 +30,24 @@ export default async function StaffFichaPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <Link href="/staff/socios" className="text-sm text-muted-foreground underline">
+      <div className="flex flex-col gap-3">
+        <Link href="/staff/socios" className="inline-flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
           ← Socios
         </Link>
-        <h1 className="text-2xl font-bold">
-          Ficha de salud — {socio?.full_name ?? "Socio"}{" "}
-          <span className="text-lg font-normal text-muted-foreground">#{socio?.member_number}</span>
-        </h1>
+        <PageHeader
+          title={`Ficha de salud — ${socio?.full_name ?? "Socio"}`}
+          subtitle={`#${socio?.member_number ?? ""}`}
+        />
       </div>
 
       {health && risk && (
         <Card
           className={
             risk.level === "consultar_medico"
-              ? "border-red-500"
+              ? "border-destructive"
               : risk.level === "precaucion"
-                ? "border-yellow-500"
-                : "border-green-500"
+                ? "border-warning"
+                : "border-success"
           }
         >
           <CardHeader>

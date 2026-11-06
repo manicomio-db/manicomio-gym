@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import Image from "next/image";
+import { AuthShell } from "@/components/auth-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -58,7 +60,8 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-svh items-center justify-center p-6">
+    <AuthShell>
+      <Image src="/logo.png" alt="Manicomio Gym" width={1320} height={1283} className="w-28 rounded-3xl shadow-2xl shadow-primary/40 ring-1 ring-white/20 sm:w-32" priority />
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Nueva contraseña</CardTitle>
@@ -96,6 +99,6 @@ export default function ResetPasswordPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </AuthShell>
   );
 }

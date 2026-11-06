@@ -3,6 +3,7 @@ import { requireProfile } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getExpiredSocios } from "@/lib/memberships";
+import { PageHeader } from "@/components/page-header";
 
 export default async function StaffHomePage() {
   const { supabase } = await requireProfile();
@@ -29,10 +30,7 @@ export default async function StaffHomePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Panel de staff</h1>
-        <p className="text-muted-foreground">Resumen de lo que necesita atención.</p>
-      </div>
+      <PageHeader title="Panel de staff" subtitle="Resumen de lo que necesita atención." />
 
       {(comprobantesPendientes ?? 0) > 0 && (
         <Card className="border-primary">

@@ -2,6 +2,7 @@ import { requireProfile } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { generateSocioQrDataUrl } from "@/lib/qr";
+import { PageHeader } from "@/components/page-header";
 
 export default async function SocioQrPage() {
   const { profile } = await requireProfile();
@@ -12,12 +13,7 @@ export default async function SocioQrPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Mi QR</h1>
-        <p className="text-muted-foreground">
-          Muéstralo en recepción para registrar tu entrada más rápido.
-        </p>
-      </div>
+      <PageHeader title="Mi QR" subtitle="Muéstralo en recepción para registrar tu entrada más rápido." />
 
       {profile.member_number && qrDataUrl ? (
         <Card>

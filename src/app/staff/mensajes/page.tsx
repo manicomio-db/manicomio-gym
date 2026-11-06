@@ -3,6 +3,7 @@ import { requireProfile } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { formatDateTimeLocal } from "@/lib/date";
 import type { Message } from "@/lib/types";
+import { PageHeader } from "@/components/page-header";
 
 type MessageRow = Message & { profiles: { full_name: string | null; member_number: number | null } | null };
 
@@ -23,16 +24,13 @@ export default async function StaffMensajesPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Mensajes</h1>
-        <p className="text-muted-foreground">Conversaciones con tus socios.</p>
-      </div>
+      <PageHeader title="Mensajes" subtitle="Conversaciones con tus socios." />
 
       {threads.length > 0 ? (
         <div className="grid gap-3">
           {threads.map((t) => (
             <Card key={t.socio_id}>
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
                 <div>
                   <CardTitle>
                     {t.profiles?.full_name ?? "Socio"}{" "}

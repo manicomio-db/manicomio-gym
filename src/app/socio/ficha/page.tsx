@@ -3,6 +3,7 @@ import { todayLocal, formatDateOnlyLocal } from "@/lib/date";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import type { HealthProfile } from "@/lib/types";
 import { HealthProfileForm } from "../../health-profile-form";
+import { PageHeader } from "@/components/page-header";
 
 export default async function SocioFichaPage() {
   const { profile, supabase } = await requireProfile();
@@ -15,12 +16,7 @@ export default async function SocioFichaPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Mi ficha de salud</h1>
-        <p className="text-muted-foreground">
-          Con esta información tu instructor adapta la rutina a tu edad, condición y lesiones.
-        </p>
-      </div>
+      <PageHeader title="Mi ficha de salud" subtitle="Con esta información tu instructor adapta la rutina a tu edad, condición y lesiones." />
 
       <Card>
         <CardHeader>

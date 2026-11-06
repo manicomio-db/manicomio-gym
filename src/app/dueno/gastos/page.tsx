@@ -21,6 +21,7 @@ import {
   upsertExpenseCategory,
   deleteExpenseCategory,
 } from "../actions";
+import { PageHeader } from "@/components/page-header";
 
 export default async function DuenoGastosPage({
   searchParams,
@@ -62,12 +63,8 @@ export default async function DuenoGastosPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold">Gastos</h1>
-          <p className="text-muted-foreground">{monthLabel(month)}</p>
-        </div>
-        <div className="flex items-center gap-2">
+      <PageHeader title="Gastos" subtitle={monthLabel(month)}>
+        <div className="flex flex-wrap items-center gap-2">
           <Button size="sm" variant="outline" render={<Link href={`/dueno/gastos?month=${prevMonth}`} />}>
             ← Mes anterior
           </Button>
@@ -80,7 +77,7 @@ export default async function DuenoGastosPage({
             Mes siguiente →
           </Button>
         </div>
-      </div>
+      </PageHeader>
 
       <Card>
         <CardHeader>

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import type { Profile } from "@/lib/types";
 import { StaffForm } from "./staff-form";
 import { removeStaff } from "../actions";
+import { PageHeader } from "@/components/page-header";
 
 export default async function DuenoStaffPage() {
   const { supabase } = await requireProfile();
@@ -16,12 +17,7 @@ export default async function DuenoStaffPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Staff</h1>
-        <p className="text-muted-foreground">
-          Solo el director puede crear cuentas de staff/instructores.
-        </p>
-      </div>
+      <PageHeader title="Staff" subtitle="Solo el director puede crear cuentas de staff/instructores." />
 
       <Card>
         <CardHeader>
@@ -38,7 +34,7 @@ export default async function DuenoStaffPage() {
             <CardHeader>
               <CardTitle>{s.full_name ?? "Sin nombre"}</CardTitle>
             </CardHeader>
-            <CardContent className="flex items-center justify-between">
+            <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-sm text-muted-foreground capitalize">{s.role}</span>
               {s.role === "staff" && (
                 <form action={removeStaff}>

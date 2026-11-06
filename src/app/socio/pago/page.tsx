@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatDateOnlyLocal } from "@/lib/date";
 import type { PaymentProof } from "@/lib/types";
 import { UploadProofForm } from "./upload-proof-form";
+import { PageHeader } from "@/components/page-header";
 
 export default async function SocioPagoPage() {
   const { profile, supabase } = await requireProfile();
@@ -32,10 +33,7 @@ export default async function SocioPagoPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Mi pago</h1>
-        <p className="text-muted-foreground">Datos para transferir y subir tu comprobante.</p>
-      </div>
+      <PageHeader title="Mi pago" subtitle="Datos para transferir y subir tu comprobante." />
 
       <Card>
         <CardHeader>
@@ -112,7 +110,7 @@ export default async function SocioPagoPage() {
                     {p.note && ` · ${p.note}`}
                   </p>
                 </div>
-                <Badge variant={p.status === "revisado" ? "default" : "secondary"}>
+                <Badge variant={p.status === "revisado" ? "success" : "secondary"}>
                   {p.status === "revisado" ? "Revisado" : "Pendiente"}
                 </Badge>
               </div>

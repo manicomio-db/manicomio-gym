@@ -14,6 +14,7 @@ import {
   RISK_LABEL,
 } from "@/lib/health";
 import type { HealthProfile } from "@/lib/types";
+import { PageHeader } from "@/components/page-header";
 
 type SocioRow = { id: string; full_name: string | null; member_number: number | null };
 
@@ -22,7 +23,7 @@ function Bars({ rows, total }: { rows: { label: string; count: number }[]; total
   return (
     <div className="flex flex-col gap-2">
       {rows.map((r) => (
-        <div key={r.label} className="grid grid-cols-[9rem_1fr_5rem] items-center gap-3 text-sm">
+        <div key={r.label} className="grid grid-cols-[6.5rem_1fr_4.5rem] items-center gap-2 text-sm sm:grid-cols-[9rem_1fr_5rem] sm:gap-3">
           <span className="truncate">{r.label}</span>
           <div className="h-3 overflow-hidden rounded-full bg-muted">
             <div className="h-full rounded-full bg-primary" style={{ width: `${(r.count / max) * 100}%` }} />
@@ -99,12 +100,7 @@ export default async function DuenoInformesPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Informes de socios</h1>
-        <p className="text-muted-foreground">
-          Perfil de tus socios según su ficha de salud: edad, condición física y alertas.
-        </p>
-      </div>
+      <PageHeader title="Informes de socios" subtitle="Perfil de tus socios según su ficha de salud: edad, condición física y alertas." />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -127,7 +123,7 @@ export default async function DuenoInformesPage() {
             <CardDescription>Edad promedio</CardDescription>
           </CardHeader>
         </Card>
-        <Card className={flagged.length > 0 ? "border-yellow-500" : undefined}>
+        <Card className={flagged.length > 0 ? "border-warning" : undefined}>
           <CardHeader>
             <CardTitle>{flagged.length}</CardTitle>
             <CardDescription>Socios con alertas de salud</CardDescription>

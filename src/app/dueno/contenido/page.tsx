@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { upsertGymInfo } from "../actions";
+import { PageHeader } from "@/components/page-header";
 
 export default async function DuenoContenidoPage() {
   const { supabase } = await requireProfile();
@@ -13,10 +14,7 @@ export default async function DuenoContenidoPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Contenido de la página principal</h1>
-        <p className="text-muted-foreground">Esta información se muestra a cualquier visitante.</p>
-      </div>
+      <PageHeader title="Contenido de la página principal" subtitle="Esta información se muestra a cualquier visitante." />
 
       <Card>
         <CardHeader>

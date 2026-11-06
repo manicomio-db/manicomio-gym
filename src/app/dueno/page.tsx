@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { todayLocal } from "@/lib/date";
 import { getExpiredSocios } from "@/lib/memberships";
+import { PageHeader } from "@/components/page-header";
 
 export default async function DuenoHomePage() {
   const { supabase } = await requireProfile();
@@ -38,10 +39,7 @@ export default async function DuenoHomePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">Vista general del gimnasio.</p>
-      </div>
+      <PageHeader title="Dashboard" subtitle="Vista general del gimnasio." />
 
       {(comprobantesPendientes ?? 0) > 0 && (
         <Card className="border-primary">

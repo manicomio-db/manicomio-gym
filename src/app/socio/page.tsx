@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Membership } from "@/lib/types";
 import { AvatarUploadForm } from "./avatar-upload-form";
+import { PageHeader } from "@/components/page-header";
 
 function formatDate(d: string) {
   return new Date(d + "T00:00:00").toLocaleDateString("es-MX", {
@@ -44,21 +45,22 @@ export default async function SocioHomePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-4">
-        <AvatarUploadForm name={profile.full_name ?? "Socio"} avatarUrl={profile.avatar_url} />
-        <div>
-          <h1 className="text-2xl font-bold">Hola, {profile.full_name ?? "Socio"}</h1>
-          <p className="text-muted-foreground">
+      <PageHeader
+        title={`Hola, ${profile.full_name ?? "Socio"}`}
+        subtitle={
+          <>
             Tu número de socio es <strong>#{profile.member_number}</strong> — dalo en recepción para
             registrar tu entrada.
-          </p>
-          {profile.username && (
-            <p className="text-muted-foreground">
-              Tu usuario para entrar es <strong>{profile.username}</strong>.
-            </p>
-          )}
-        </div>
-      </div>
+            {profile.username && (
+              <>
+                {" "}
+                Tu usuario para entrar es <strong>{profile.username}</strong>.
+              </>
+            )}
+          </>
+        }
+        leading={<AvatarUploadForm name={profile.full_name ?? "Socio"} avatarUrl={profile.avatar_url} />}
+      />
 
       {!health && (
         <Card className="border-primary">
@@ -107,7 +109,7 @@ export default async function SocioHomePage() {
         <CardContent>
           {membership ? (
             <div className="flex flex-col gap-2">
-              <Badge variant={isExpired ? "destructive" : "default"} className="w-fit">
+              <Badge variant={isExpired ? "destructive" : "success"} className="w-fit">
                 {isExpired ? "Vencida" : "Activa"}
               </Badge>
               <p>

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { formatDateOnlyLocal, formatDateTimeLocal, localDateOf, startOfLocalDayIso } from "@/lib/date";
 import { currentMonthParam, monthLabel, monthRange, shiftMonth, weeksInMonth, inRange } from "@/lib/reports";
 import { deleteDayPass, deleteMembership, deleteSale } from "../actions";
+import { PageHeader } from "@/components/page-header";
 
 type MembershipRow = {
   id: string;
@@ -146,12 +147,8 @@ export default async function DuenoIngresosPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold">Ingresos</h1>
-          <p className="text-muted-foreground">{monthLabel(month)}</p>
-        </div>
-        <div className="flex items-center gap-2">
+      <PageHeader title="Ingresos" subtitle={monthLabel(month)}>
+        <div className="flex flex-wrap items-center gap-2">
           <Button size="sm" variant="outline" render={<Link href={`/dueno/ingresos?month=${prevMonth}&view=${view}`} />}>
             ← Mes anterior
           </Button>
@@ -164,7 +161,7 @@ export default async function DuenoIngresosPage({
             Mes siguiente →
           </Button>
         </div>
-      </div>
+      </PageHeader>
 
       <div className="flex gap-2">
         <Button
@@ -224,7 +221,7 @@ export default async function DuenoIngresosPage({
         </Card>
         <Card className="neon-border">
           <CardHeader>
-            <CardTitle className={cn(netProfit >= 0 ? "text-green-400" : "text-destructive")}>
+            <CardTitle className={cn(netProfit >= 0 ? "text-success" : "text-destructive")}>
               {money(netProfit)}
             </CardTitle>
             <CardDescription>Utilidad neta (ingresos − gastos)</CardDescription>
@@ -260,7 +257,7 @@ export default async function DuenoIngresosPage({
                     <TableCell>{money(w.wSales)}</TableCell>
                     <TableCell>{money(w.wIncome)}</TableCell>
                     <TableCell className="text-destructive">-{money(w.wExpenses)}</TableCell>
-                    <TableCell className={w.wNet >= 0 ? "text-green-400" : "text-destructive"}>
+                    <TableCell className={w.wNet >= 0 ? "text-success" : "text-destructive"}>
                       {money(w.wNet)}
                     </TableCell>
                   </TableRow>
@@ -399,7 +396,7 @@ export default async function DuenoIngresosPage({
                         <TableCell>
                           {m.profiles?.full_name ?? "—"}
                           {duplicate && (
-                            <span className="ml-2 rounded-full bg-yellow-500/20 px-2 py-0.5 text-xs font-medium text-yellow-400">
+                            <span className="ml-2 rounded-full bg-warning/20 px-2 py-0.5 text-xs font-medium text-warning">
                               Posible duplicado
                             </span>
                           )}

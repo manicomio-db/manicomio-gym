@@ -178,7 +178,7 @@ export function ProductCard({
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
         <CardTitle>{product.name}</CardTitle>
         <div className="flex gap-2">
           <RestockDialog product={product} expenseCategories={expenseCategories} />

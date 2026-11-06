@@ -8,6 +8,7 @@ import type { Routine, WorkoutLog } from "@/lib/types";
 import { WorkoutLogForm } from "../../workout-log-form";
 import { ProgressTable } from "../../progress-table";
 import { WorkoutHistory } from "../../workout-history";
+import { PageHeader } from "@/components/page-header";
 
 export default async function SocioProgresoPage() {
   const { profile, supabase } = await requireProfile();
@@ -37,13 +38,7 @@ export default async function SocioProgresoPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Mi progreso</h1>
-        <p className="text-muted-foreground">
-          Anota el peso y las repeticiones de tus ejercicios. Cuando pidas una rutina nueva, tu
-          instructor la diseñará a partir de tu avance.
-        </p>
-      </div>
+      <PageHeader title="Mi progreso" subtitle="Anota el peso y las repeticiones de tus ejercicios. Cuando pidas una rutina nueva, tu instructor la diseñará a partir de tu avance." />
 
       {!routine && (
         <Card className="border-primary">

@@ -14,6 +14,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { Product, Sale } from "@/lib/types";
 import { registerSale } from "../actions";
+import { PageHeader } from "@/components/page-header";
 
 export default async function StaffVentasPage() {
   const { supabase } = await requireProfile();
@@ -31,10 +32,7 @@ export default async function StaffVentasPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Ventas</h1>
-        <p className="text-muted-foreground">Registra la venta de un producto y controla el stock.</p>
-      </div>
+      <PageHeader title="Ventas" subtitle="Registra la venta de un producto y controla el stock." />
 
       <Card>
         <CardHeader>

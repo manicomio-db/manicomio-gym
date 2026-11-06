@@ -5,6 +5,7 @@ import { ageFromBirthDate, assessRisk, bmi, bmiCategory } from "@/lib/health";
 import { analyzeProgress } from "@/lib/progress";
 import type { HealthProfile, RoutineRequest, WorkoutLog } from "@/lib/types";
 import { RoutineComposer } from "./routine-composer";
+import { PageHeader } from "@/components/page-header";
 
 const STATUS_LABEL: Record<string, string> = {
   pendiente: "Pendiente",
@@ -48,12 +49,7 @@ export default async function StaffRutinasPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Solicitudes de rutina</h1>
-        <p className="text-muted-foreground">
-          Genera un borrador con IA, ajústalo y asígnalo al socio.
-        </p>
-      </div>
+      <PageHeader title="Solicitudes de rutina" subtitle="Genera un borrador con IA, ajústalo y asígnalo al socio." />
 
       {activos.length === 0 && (
         <p className="text-muted-foreground">No hay solicitudes pendientes.</p>

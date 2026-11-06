@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatDateTimeLocal } from "@/lib/date";
 import type { Message, Profile } from "@/lib/types";
 import { replyMessage } from "../../actions";
+import { PageHeader } from "@/components/page-header";
 
 const ROLE_LABEL: Record<string, string> = {
   socio: "Socio",
@@ -33,14 +34,14 @@ export default async function StaffMensajeThreadPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <Link href="/staff/mensajes" className="text-sm text-muted-foreground underline">
+      <div className="flex flex-col gap-3">
+        <Link href="/staff/mensajes" className="inline-flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
           ← Todos los mensajes
         </Link>
-        <h1 className="text-2xl font-bold">
-          {socio?.full_name ?? "Socio"}{" "}
-          <span className="text-lg font-normal text-muted-foreground">#{socio?.member_number}</span>
-        </h1>
+        <PageHeader
+          title={socio?.full_name ?? "Socio"}
+          subtitle={`#${socio?.member_number ?? ""}`}
+        />
       </div>
 
       <Card>

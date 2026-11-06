@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Routine, RoutineRequest } from "@/lib/types";
 import { RequestRoutineForm } from "./request-form";
+import { PageHeader } from "@/components/page-header";
 
 const STATUS_LABEL: Record<string, string> = {
   pendiente: "Pendiente",
@@ -38,12 +39,7 @@ export default async function SocioRutinaPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Mi rutina</h1>
-        <p className="text-muted-foreground">
-          Consulta tu rutina asignada o pide una nueva a tu instructor.
-        </p>
-      </div>
+      <PageHeader title="Mi rutina" subtitle="Consulta tu rutina asignada o pide una nueva a tu instructor." />
 
       <Card>
         <CardHeader>

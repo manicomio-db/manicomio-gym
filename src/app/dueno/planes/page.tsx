@@ -2,6 +2,7 @@ import { requireProfile } from "@/lib/supabase/session";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { MembershipPlan } from "@/lib/types";
 import { PlanForm, PlanCard } from "./plan-form";
+import { PageHeader } from "@/components/page-header";
 
 export default async function DuenoPlanesPage() {
   const { supabase } = await requireProfile();
@@ -13,10 +14,7 @@ export default async function DuenoPlanesPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Planes de membresía</h1>
-        <p className="text-muted-foreground">Estos precios se muestran en la página principal.</p>
-      </div>
+      <PageHeader title="Planes de membresía" subtitle="Estos precios se muestran en la página principal." />
 
       <Card>
         <CardHeader>

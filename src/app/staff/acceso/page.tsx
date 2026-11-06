@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import type { CheckIn, DayPass } from "@/lib/types";
 import { CheckInForm } from "./check-in-form";
 import { registerDayPass } from "../actions";
+import { PageHeader } from "@/components/page-header";
 
 const HISTORY_LIMIT = 300;
 
@@ -68,10 +69,7 @@ export default async function StaffAccesoPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Control de acceso</h1>
-        <p className="text-muted-foreground">Busca al socio por su número para registrar su entrada.</p>
-      </div>
+      <PageHeader title="Control de acceso" subtitle="Busca al socio por su número para registrar su entrada." />
 
       <CheckInForm />
 

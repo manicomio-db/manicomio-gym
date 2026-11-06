@@ -5,9 +5,9 @@ function changeClass(p: ExerciseProgress): string {
   if (p.sessions < 2) return "text-muted-foreground";
   const up = (p.weightDelta ?? 0) > 0 || p.repsDelta > 0;
   const down = (p.weightDelta ?? 0) < 0 || p.repsDelta < 0;
-  if (up && !down) return "text-green-400";
-  if (down && !up) return "text-red-400";
-  return "text-yellow-400";
+  if (up && !down) return "text-success";
+  if (down && !up) return "text-destructive";
+  return "text-warning";
 }
 
 /** Tabla de progreso por ejercicio: inicio, último registro y cambio. */

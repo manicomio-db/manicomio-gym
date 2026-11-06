@@ -6,6 +6,7 @@ import { formatDateTimeLocal } from "@/lib/date";
 import type { MembershipPlan, PaymentProof } from "@/lib/types";
 import { markProofReviewed } from "../actions";
 import { ActivateDialog } from "./activate-dialog";
+import { PageHeader } from "@/components/page-header";
 
 type ProofRow = PaymentProof & { profiles: { full_name: string | null; member_number: number | null } | null };
 
@@ -31,18 +32,13 @@ export default async function StaffComprobantesPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Comprobantes de pago</h1>
-        <p className="text-muted-foreground">
-          Revisa cada comprobante y, si el pago llegó, activa el plan ahí mismo.
-        </p>
-      </div>
+      <PageHeader title="Comprobantes de pago" subtitle="Revisa cada comprobante y, si el pago llegó, activa el plan ahí mismo." />
 
       {proofsWithUrls.length > 0 ? (
         <div className="grid gap-4">
           {proofsWithUrls.map((p) => (
             <Card key={p.id} className={p.status === "pendiente" ? "border-primary" : undefined}>
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
                 <div>
                   <CardTitle>
                     {p.profiles?.full_name ?? "Socio"}{" "}
@@ -52,11 +48,11 @@ export default async function StaffComprobantesPage() {
                   </CardTitle>
                   <CardDescription>{formatDateTimeLocal(p.created_at)}</CardDescription>
                 </div>
-                <Badge variant={p.status === "revisado" ? "default" : "secondary"}>
+                <Badge variant={p.status === "revisado" ? "success" : "secondary"}>
                   {p.status === "revisado" ? "Revisado" : "Pendiente"}
                 </Badge>
               </CardHeader>
-              <CardContent className="flex flex-wrap items-center justify-between gap-3">
+              <CardContent className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                 <div className="text-sm">
                   {p.url ? (
                     <a href={p.url} target="_blank" rel="noreferrer" className="underline">
