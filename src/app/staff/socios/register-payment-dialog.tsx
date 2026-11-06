@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -36,8 +36,11 @@ export function RegisterPaymentDialog({
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [amount, setAmount] = useState("");
+  // El ref bloquea al instante los clics repetidos (el estado se actualiza con retraso).
+  const submittingRef = useRef(false);
 
   async function handleSubmit(formData: FormData) {
+    if (submittingRef.current) return;
     if (!formData.get("plan_id")) {
       toast.error("Elige el plan que pagó.");
       return;
@@ -47,14 +50,20 @@ export function RegisterPaymentDialog({
       toast.error("Adjunta la foto o el comprobante del pago.");
       return;
     }
+    submittingRef.current = true;
     setPending(true);
     try {
-      await activateMembershipWithProof(formData);
+      const { error } = await activateMembershipWithProof(formData);
+      if (error) {
+        toast.error(error);
+        return;
+      }
       toast.success("Pago registrado y membresía activada.");
       setOpen(false);
     } catch {
       toast.error("No se pudo registrar el pago.");
     } finally {
+      submittingRef.current = false;
       setPending(false);
     }
   }

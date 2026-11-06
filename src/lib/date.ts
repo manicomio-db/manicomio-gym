@@ -73,3 +73,33 @@ export function addDays(dateStr: string, days: number): string {
   dt.setUTCDate(dt.getUTCDate() + days);
   return dt.toISOString().slice(0, 10);
 }
+
+/**
+ * Suma meses de calendario a una fecha YYYY-MM-DD. Si el día no existe en el mes
+ * de destino se usa el último día de ese mes (31 ene + 1 mes = 28 feb).
+ */
+export function addMonths(dateStr: string, months: number): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const total = y * 12 + (m - 1) + months;
+  const ny = Math.floor(total / 12);
+  const nm = (total % 12) + 1;
+  const lastDay = new Date(Date.UTC(ny, nm, 0)).getUTCDate();
+  const nd = Math.min(d, lastDay);
+  return `${ny}-${String(nm).padStart(2, "0")}-${String(nd).padStart(2, "0")}`;
+}
+
+const AVG_MONTH_DAYS = 30.4375;
+
+/**
+ * Vencimiento de un plan que empieza en `dateStr`. Los planes de "meses" se
+ * guardan en días (30, 60, 90, 180, 365) pero en el gimnasio se cuentan por
+ * calendario: una mensualidad del 6 vence el 6 del mes siguiente, no 30 días
+ * después. Si la duración es casi un número entero de meses se suman meses de
+ * calendario; si no (7, 15, 28, 45 días...) se suman días exactos.
+ */
+export function addPlanDuration(dateStr: string, durationDays: number): string {
+  const months = Math.round(durationDays / AVG_MONTH_DAYS);
+  const isWholeMonths =
+    months >= 1 && Math.abs(durationDays - months * AVG_MONTH_DAYS) <= 0.5 + months * 0.5;
+  return isWholeMonths ? addMonths(dateStr, months) : addDays(dateStr, durationDays);
+}

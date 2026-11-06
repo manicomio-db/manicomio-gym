@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -37,20 +37,29 @@ export function ActivateDialog({
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [amount, setAmount] = useState("");
+  // El ref bloquea al instante los clics repetidos (el estado se actualiza con retraso).
+  const submittingRef = useRef(false);
 
   async function handleSubmit(formData: FormData) {
+    if (submittingRef.current) return;
     if (!formData.get("plan_id")) {
       toast.error("Elige el plan que pagó.");
       return;
     }
+    submittingRef.current = true;
     setPending(true);
     try {
-      await activateMembershipFromProof(formData);
+      const { error } = await activateMembershipFromProof(formData);
+      if (error) {
+        toast.error(error);
+        return;
+      }
       toast.success("Membresía activada y comprobante marcado como revisado.");
       setOpen(false);
     } catch {
       toast.error("No se pudo activar la membresía.");
     } finally {
+      submittingRef.current = false;
       setPending(false);
     }
   }

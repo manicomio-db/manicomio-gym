@@ -4,16 +4,20 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { formatDateOnlyLocal, localDateOf, startOfLocalDayIso } from "@/lib/date";
+import { formatDateOnlyLocal, formatDateTimeLocal, localDateOf, startOfLocalDayIso } from "@/lib/date";
 import { currentMonthParam, monthLabel, monthRange, shiftMonth, weeksInMonth, inRange } from "@/lib/reports";
 import { deleteDayPass, deleteMembership, deleteSale } from "../actions";
 
 type MembershipRow = {
   id: string;
+  socio_id: string;
   amount_paid: number;
   start_date: string;
+  end_date: string;
+  created_at: string;
   membership_plans: { name: string } | null;
   profiles: { full_name: string | null } | null;
+  registrado_por: { full_name: string | null } | null;
 };
 
 type DayPassRow = { id: string; visitor_name: string; amount: number; created_at: string };
@@ -53,7 +57,7 @@ export default async function DuenoIngresosPage({
     supabase
       .from("memberships")
       .select(
-        "id, amount_paid, start_date, membership_plans(name), profiles!memberships_socio_id_fkey(full_name)"
+        "id, socio_id, amount_paid, start_date, end_date, created_at, membership_plans(name), profiles!memberships_socio_id_fkey(full_name), registrado_por:profiles!memberships_created_by_fkey(full_name)"
       )
       .gte("start_date", monthStart)
       .lt("start_date", monthEnd)
@@ -373,17 +377,43 @@ export default async function DuenoIngresosPage({
                       <TableHead>Socio</TableHead>
                       <TableHead>Plan</TableHead>
                       <TableHead>Monto</TableHead>
-                      <TableHead>Fecha inicio</TableHead>
+                      <TableHead>Inicio</TableHead>
+                      <TableHead>Vence</TableHead>
+                      <TableHead>Registró</TableHead>
                       <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {memberships.map((m) => (
+                    {memberships.map((m) => {
+                      // Posible duplicado: el mismo socio tiene otra membresía registrada
+                      // con menos de 24 h de diferencia.
+                      const duplicate = memberships.some(
+                        (o) =>
+                          o.id !== m.id &&
+                          o.socio_id === m.socio_id &&
+                          Math.abs(new Date(o.created_at).getTime() - new Date(m.created_at).getTime()) <
+                            24 * 60 * 60 * 1000
+                      );
+                      return (
                       <TableRow key={m.id}>
-                        <TableCell>{m.profiles?.full_name ?? "—"}</TableCell>
+                        <TableCell>
+                          {m.profiles?.full_name ?? "—"}
+                          {duplicate && (
+                            <span className="ml-2 rounded-full bg-yellow-500/20 px-2 py-0.5 text-xs font-medium text-yellow-400">
+                              Posible duplicado
+                            </span>
+                          )}
+                        </TableCell>
                         <TableCell>{m.membership_plans?.name ?? "—"}</TableCell>
                         <TableCell>{money(Number(m.amount_paid))}</TableCell>
                         <TableCell>{m.start_date}</TableCell>
+                        <TableCell>{m.end_date}</TableCell>
+                        <TableCell>
+                          {m.registrado_por?.full_name ?? "—"}
+                          <span className="block text-xs text-muted-foreground">
+                            {formatDateTimeLocal(m.created_at)}
+                          </span>
+                        </TableCell>
                         <TableCell>
                           <form action={deleteMembership}>
                             <input type="hidden" name="id" value={m.id} />
@@ -393,7 +423,8 @@ export default async function DuenoIngresosPage({
                           </form>
                         </TableCell>
                       </TableRow>
-                    ))}
+                      );
+                    })}
                   </TableBody>
                 </Table>
               ) : (

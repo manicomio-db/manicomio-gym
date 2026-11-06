@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/supabase/session";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { todayLocal, addDays, localDateOf } from "@/lib/date";
+import { todayLocal, addPlanDuration, localDateOf } from "@/lib/date";
 import { generateSocioQrDataUrl } from "@/lib/qr";
 import type { RoutineContent } from "@/lib/types";
 
@@ -326,20 +326,45 @@ export async function markProofReviewed(formData: FormData) {
   revalidatePath("/staff/comprobantes");
 }
 
+export type RenewalResult = { error: string | null };
+
+// Ventana en la que no se permite una segunda activación del mismo socio por las
+// vías del staff: evita meses de más por doble clic o por registrar el mismo pago
+// dos veces (en Comprobantes y otra vez en Registrar pago).
+const DUPLICATE_WINDOW_HOURS = 24;
+
+/** Mensaje de error si no se debe activar de nuevo a este socio; null si se puede. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- cliente Supabase tipado genéricamente
+async function renewalBlockReason(supabase: any, socioId: string): Promise<string | null> {
+  const since = new Date(Date.now() - DUPLICATE_WINDOW_HOURS * 60 * 60 * 1000).toISOString();
+  const { data: recent } = await supabase
+    .from("memberships")
+    .select("created_at")
+    .eq("socio_id", socioId)
+    .gte("created_at", since)
+    .limit(1)
+    .maybeSingle();
+
+  if (recent) {
+    return "A este socio ya se le activó una membresía en las últimas 24 horas. Para evitar cobrarle meses de más no se puede activar otra vez. Si fue un error, avisa al dueño para que lo corrija.";
+  }
+  return null;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- cliente Supabase tipado genéricamente
 async function insertRenewal(supabase: any, opts: {
   socioId: string;
   planId: string;
   amountRaw: FormDataEntryValue | null;
   createdBy: string;
-}) {
+}): Promise<RenewalResult> {
   const { data: plan } = await supabase
     .from("membership_plans")
     .select("duration_days, price")
     .eq("id", opts.planId)
     .single();
 
-  if (!plan) throw new Error("Plan no encontrado.");
+  if (!plan) return { error: "No se encontró el plan elegido." };
 
   const today = todayLocal();
 
@@ -355,15 +380,21 @@ async function insertRenewal(supabase: any, opts: {
 
   const base = last && last.end_date > today ? last.end_date : today;
 
-  await supabase.from("memberships").insert({
+  const { error } = await supabase.from("memberships").insert({
     socio_id: opts.socioId,
     plan_id: opts.planId,
     start_date: today,
-    end_date: addDays(base, plan.duration_days),
+    end_date: addPlanDuration(base, plan.duration_days),
     status: "activo",
     amount_paid: opts.amountRaw ? Number(opts.amountRaw) : Number(plan.price),
     created_by: opts.createdBy,
   });
+
+  if (error) {
+    console.error("insertRenewal error:", error);
+    return { error: "No se pudo guardar la membresía. Intenta de nuevo." };
+  }
+  return { error: null };
 }
 
 function revalidateAfterRenewal() {
@@ -376,28 +407,50 @@ function revalidateAfterRenewal() {
   revalidatePath("/socio/pago");
 }
 
-export async function activateMembershipFromProof(formData: FormData) {
+export async function activateMembershipFromProof(formData: FormData): Promise<RenewalResult> {
   const { profile, supabase } = await requireStaff();
 
   const proofId = String(formData.get("proof_id") ?? "");
   const socioId = String(formData.get("socio_id") ?? "");
   const planId = String(formData.get("plan_id") ?? "");
 
-  if (!proofId || !socioId || !planId) return;
+  if (!proofId || !socioId || !planId) return { error: "Faltan datos para activar." };
 
-  await insertRenewal(supabase, {
+  const blocked = await renewalBlockReason(supabase, socioId);
+  if (blocked) return { error: blocked };
+
+  // El comprobante se "reclama" primero y de forma atómica (solo si sigue
+  // pendiente): si se manda dos veces, la segunda ya no lo encuentra pendiente.
+  const { data: claimed } = await supabase
+    .from("payment_proofs")
+    .update({ status: "revisado", reviewed_by: profile.id, reviewed_at: new Date().toISOString() })
+    .eq("id", proofId)
+    .eq("status", "pendiente")
+    .select("id");
+
+  if (!claimed || claimed.length === 0) {
+    revalidatePath("/staff/comprobantes");
+    return { error: "Este comprobante ya fue revisado: ya se activó o se descartó." };
+  }
+
+  const result = await insertRenewal(supabase, {
     socioId,
     planId,
     amountRaw: formData.get("amount_paid"),
     createdBy: profile.id,
   });
 
-  await supabase
-    .from("payment_proofs")
-    .update({ status: "revisado", reviewed_by: profile.id, reviewed_at: new Date().toISOString() })
-    .eq("id", proofId);
+  if (result.error) {
+    // Si no se pudo activar, el comprobante vuelve a quedar pendiente.
+    await supabase
+      .from("payment_proofs")
+      .update({ status: "pendiente", reviewed_by: null, reviewed_at: null })
+      .eq("id", proofId);
+    return result;
+  }
 
   revalidateAfterRenewal();
+  return { error: null };
 }
 
 /**
@@ -405,7 +458,7 @@ export async function activateMembershipFromProof(formData: FormData) {
  * activa en un solo paso. El comprobante queda guardado y visible para el dueño
  * en Comprobantes; sin archivo no se puede activar.
  */
-export async function activateMembershipWithProof(formData: FormData) {
+export async function activateMembershipWithProof(formData: FormData): Promise<RenewalResult> {
   const { profile, supabase } = await requireStaff();
 
   const socioId = String(formData.get("socio_id") ?? "");
@@ -413,9 +466,29 @@ export async function activateMembershipWithProof(formData: FormData) {
   const note = String(formData.get("note") ?? "").trim();
   const file = formData.get("file");
 
-  if (!socioId || !planId) return;
+  if (!socioId || !planId) return { error: "Faltan datos para activar." };
   if (!(file instanceof File) || file.size === 0) {
-    throw new Error("Debes adjuntar la foto o el comprobante del pago.");
+    return { error: "Debes adjuntar la foto o el comprobante del pago." };
+  }
+
+  // Antes de subir nada: ¿ya se activó hace poco o hay un comprobante del socio
+  // esperando? En ese caso el pago ya está registrado por otra vía.
+  const blocked = await renewalBlockReason(supabase, socioId);
+  if (blocked) return { error: blocked };
+
+  const { data: pendingProof } = await supabase
+    .from("payment_proofs")
+    .select("id")
+    .eq("socio_id", socioId)
+    .eq("status", "pendiente")
+    .limit(1)
+    .maybeSingle();
+
+  if (pendingProof) {
+    return {
+      error:
+        "Este socio ya envió un comprobante que está pendiente. Actívalo desde Comprobantes para no registrar el mismo pago dos veces.",
+    };
   }
 
   const ext = file.name.split(".").pop() || "jpg";
@@ -427,31 +500,45 @@ export async function activateMembershipWithProof(formData: FormData) {
 
   if (uploadError) {
     console.error("activateMembershipWithProof upload error:", uploadError);
-    throw new Error(uploadError.message);
+    return { error: "No se pudo subir el comprobante. Intenta de nuevo." };
   }
 
-  const { error: proofError } = await supabase.from("payment_proofs").insert({
-    socio_id: socioId,
-    file_path: path,
-    note: note || "Pago registrado en recepción",
-    status: "revisado",
-    reviewed_by: profile.id,
-    reviewed_at: new Date().toISOString(),
-  });
+  const { data: proof, error: proofError } = await supabase
+    .from("payment_proofs")
+    .insert({
+      socio_id: socioId,
+      file_path: path,
+      note: note || "Pago registrado en recepción",
+      status: "revisado",
+      reviewed_by: profile.id,
+      reviewed_at: new Date().toISOString(),
+    })
+    .select("id")
+    .single();
 
-  if (proofError) {
+  if (proofError || !proof) {
     console.error("activateMembershipWithProof proof insert error:", proofError);
-    throw new Error(proofError.message);
+    return { error: "No se pudo guardar el comprobante. Intenta de nuevo." };
   }
 
-  await insertRenewal(supabase, {
+  const result = await insertRenewal(supabase, {
     socioId,
     planId,
     amountRaw: formData.get("amount_paid"),
     createdBy: profile.id,
   });
 
+  if (result.error) {
+    // No quedó activa: se anota en el comprobante para que no parezca un pago activado.
+    await supabase
+      .from("payment_proofs")
+      .update({ note: "(No se activó la membresía: hubo un error al guardarla)" })
+      .eq("id", proof.id);
+    return result;
+  }
+
   revalidateAfterRenewal();
+  return { error: null };
 }
 
 export async function replyMessage(formData: FormData) {

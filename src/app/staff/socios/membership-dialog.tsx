@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { todayLocal } from "@/lib/date";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -42,7 +43,12 @@ export function MembershipDialog({
     () => plans.find((p) => p.id === currentPlanId)?.price.toString() ?? ""
   );
 
+  // El ref bloquea al instante los clics repetidos (el estado se actualiza con retraso).
+  const submittingRef = useRef(false);
+
   async function handleSubmit(formData: FormData) {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setPending(true);
     try {
       await updateMembership(formData);
@@ -51,6 +57,7 @@ export function MembershipDialog({
     } catch {
       toast.error("No se pudo actualizar la membresía.");
     } finally {
+      submittingRef.current = false;
       setPending(false);
     }
   }
@@ -107,7 +114,7 @@ export function MembershipDialog({
               id="start_date"
               name="start_date"
               type="date"
-              defaultValue={new Date().toISOString().slice(0, 10)}
+              defaultValue={todayLocal()}
             />
           </div>
           <div className="flex flex-col gap-2">
