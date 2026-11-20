@@ -6,17 +6,31 @@ import {
   formatDateTimeLocal,
   startOfLocalDayIso,
 } from "@/lib/date";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { CheckIn, DayPass } from "@/lib/types";
 import { CheckInForm } from "./check-in-form";
-import { registerDayPass } from "../actions";
+import { DayPassForm } from "./day-pass-form";
 import { PageHeader } from "@/components/page-header";
 
 const HISTORY_LIMIT = 300;
+const DAY_PASS_LIMIT = 200;
 
 function daysAgo(days: number): string {
   const d = new Date(todayLocal() + "T00:00:00");
@@ -32,7 +46,8 @@ export default async function StaffAccesoPage({
 }: {
   searchParams: Promise<{ from?: string; to?: string; q?: string }>;
 }) {
-  const { supabase } = await requireProfile();
+  const { profile, supabase } = await requireProfile();
+  const isDueno = profile.role === "dueno";
   const params = await searchParams;
 
   const from = params.from || daysAgo(6); // últimos 7 días por defecto (hoy incluido)
@@ -57,40 +72,76 @@ export default async function StaffAccesoPage({
 
   const [{ data: checkIns }, { data: dayPasses }] = await Promise.all([
     checkInsQuery.returns<
-      (CheckIn & { profiles: { full_name: string | null; member_number: number | null } | null })[]
+      (CheckIn & {
+        profiles: {
+          full_name: string | null;
+          member_number: number | null;
+        } | null;
+      })[]
     >(),
     supabase
       .from("day_passes")
       .select("*")
+      .gte("pass_date", from)
+      .lte("pass_date", to)
+      .order("pass_date", { ascending: false })
       .order("created_at", { ascending: false })
-      .limit(20)
+      .limit(DAY_PASS_LIMIT)
       .returns<DayPass[]>(),
   ]);
 
+  const dayPassTotal = (dayPasses ?? []).reduce(
+    (sum, d) => sum + Number(d.amount),
+    0,
+  );
+
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Control de acceso" subtitle="Busca al socio por su número para registrar su entrada." />
+      <PageHeader
+        title="Control de acceso"
+        subtitle="Busca al socio por su número para registrar su entrada."
+      />
 
       <CheckInForm />
 
       <Card>
         <CardHeader>
           <CardTitle>Historial de entradas</CardTitle>
-          <CardDescription>Filtra por fecha y, si quieres, por nombre del socio.</CardDescription>
+          <CardDescription>
+            Filtra por fecha y, si quieres, por nombre del socio.
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <form method="get" className="flex flex-wrap items-end gap-3">
             <div className="flex flex-col gap-2">
               <Label htmlFor="from">Desde</Label>
-              <Input id="from" name="from" type="date" defaultValue={from} className="w-40" />
+              <Input
+                id="from"
+                name="from"
+                type="date"
+                defaultValue={from}
+                className="w-40"
+              />
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="to">Hasta</Label>
-              <Input id="to" name="to" type="date" defaultValue={to} className="w-40" />
+              <Input
+                id="to"
+                name="to"
+                type="date"
+                defaultValue={to}
+                className="w-40"
+              />
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="q">Nombre del socio</Label>
-              <Input id="q" name="q" defaultValue={q} placeholder="Opcional" className="w-48" />
+              <Input
+                id="q"
+                name="q"
+                defaultValue={q}
+                placeholder="Opcional"
+                className="w-48"
+              />
             </div>
             <Button type="submit">Filtrar</Button>
           </form>
@@ -119,13 +170,15 @@ export default async function StaffAccesoPage({
               </Table>
               {checkIns.length === HISTORY_LIMIT && (
                 <p className="text-xs text-muted-foreground">
-                  Mostrando los primeros {HISTORY_LIMIT} resultados — acota el rango de fechas para ver
-                  menos entradas a la vez.
+                  Mostrando los primeros {HISTORY_LIMIT} resultados — acota el
+                  rango de fechas para ver menos entradas a la vez.
                 </p>
               )}
             </>
           ) : (
-            <p className="text-muted-foreground">No hay entradas en ese rango de fechas.</p>
+            <p className="text-muted-foreground">
+              No hay entradas en ese rango de fechas.
+            </p>
           )}
         </CardContent>
       </Card>
@@ -133,40 +186,63 @@ export default async function StaffAccesoPage({
       <Card>
         <CardHeader>
           <CardTitle>Pase de visita (un día)</CardTitle>
-          <CardDescription>Para personas que no son socias.</CardDescription>
+          <CardDescription>
+            Para personas que no son socias.
+            {isDueno &&
+              " Como director puedes elegir la fecha para capturar visitas de días pasados."}
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <form action={registerDayPass} className="flex flex-wrap items-end gap-3">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="visitor_name">Nombre del visitante</Label>
-              <Input id="visitor_name" name="visitor_name" required className="w-56" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="amount">Monto cobrado (MXN)</Label>
-              <Input id="amount" name="amount" type="number" step="0.01" min={1} required className="w-32" />
-            </div>
-            <Button type="submit">Registrar visita</Button>
-          </form>
+          <DayPassForm canChooseDate={isDueno} today={todayLocal()} />
 
-          {dayPasses && dayPasses.length > 0 && (
+          <div className="flex flex-wrap items-baseline justify-between gap-2 border-t pt-4">
+            <p className="text-sm text-muted-foreground">
+              Visitas del {formatDateOnlyLocal(`${from}T12:00:00Z`)} al{" "}
+              {formatDateOnlyLocal(`${to}T12:00:00Z`)} (mismo rango de fechas
+              del filtro de arriba).
+            </p>
+            <p className="text-sm font-semibold">
+              {(dayPasses ?? []).length}{" "}
+              {(dayPasses ?? []).length === 1 ? "visita" : "visitas"} · $
+              {dayPassTotal.toLocaleString("es-MX")}
+            </p>
+          </div>
+
+          {dayPasses && dayPasses.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Fecha</TableHead>
                   <TableHead>Visitante</TableHead>
                   <TableHead>Monto</TableHead>
-                  <TableHead>Hora</TableHead>
+                  <TableHead>Capturada</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {dayPasses.map((d) => (
                   <TableRow key={d.id}>
+                    <TableCell>
+                      {formatDateOnlyLocal(`${d.pass_date}T12:00:00Z`)}
+                    </TableCell>
                     <TableCell>{d.visitor_name}</TableCell>
                     <TableCell>${d.amount.toLocaleString("es-MX")}</TableCell>
-                    <TableCell>{formatDateTimeLocal(d.created_at)}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {formatDateTimeLocal(d.created_at)}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+          ) : (
+            <p className="text-muted-foreground">
+              No hay visitas en ese rango de fechas.
+            </p>
+          )}
+          {dayPasses && dayPasses.length === DAY_PASS_LIMIT && (
+            <p className="text-xs text-muted-foreground">
+              Mostrando las primeras {DAY_PASS_LIMIT} visitas — acota el rango
+              de fechas para ver menos.
+            </p>
           )}
         </CardContent>
       </Card>

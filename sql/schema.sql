@@ -76,6 +76,20 @@ create table if not exists public.day_passes (
   created_at timestamptz not null default now()
 );
 
+-- Fecha a la que pertenece la visita (puede ser anterior al día en que se capturó),
+-- igual que sale_date / expense_date: los informes se agrupan por esta fecha.
+alter table public.day_passes add column if not exists pass_date date;
+
+update public.day_passes
+  set pass_date = (created_at at time zone 'America/Mexico_City')::date
+  where pass_date is null;
+
+alter table public.day_passes
+  alter column pass_date set default ((now() at time zone 'America/Mexico_City')::date);
+alter table public.day_passes alter column pass_date set not null;
+
+create index if not exists day_passes_pass_date_idx on public.day_passes (pass_date);
+
 create table if not exists public.expense_categories (
   id uuid primary key default gen_random_uuid(),
   name text not null unique,

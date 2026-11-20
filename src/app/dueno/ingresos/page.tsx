@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { formatDateOnlyLocal, formatDateTimeLocal, localDateOf, startOfLocalDayIso } from "@/lib/date";
+import { formatDateOnlyLocal, formatDateTimeLocal } from "@/lib/date";
 import { currentMonthParam, monthLabel, monthRange, shiftMonth, weeksInMonth, inRange } from "@/lib/reports";
 import { deleteDayPass, deleteMembership, deleteSale } from "../actions";
 import { PageHeader } from "@/components/page-header";
@@ -21,7 +21,7 @@ type MembershipRow = {
   registrado_por: { full_name: string | null } | null;
 };
 
-type DayPassRow = { id: string; visitor_name: string; amount: number; created_at: string };
+type DayPassRow = { id: string; visitor_name: string; amount: number; pass_date: string; created_at: string };
 
 type SaleRow = {
   id: string;
@@ -67,9 +67,10 @@ export default async function DuenoIngresosPage({
       .returns<MembershipRow[]>(),
     supabase
       .from("day_passes")
-      .select("id, visitor_name, amount, created_at")
-      .gte("created_at", startOfLocalDayIso(monthStart))
-      .lt("created_at", startOfLocalDayIso(monthEnd))
+      .select("id, visitor_name, amount, pass_date, created_at")
+      .gte("pass_date", monthStart)
+      .lt("pass_date", monthEnd)
+      .order("pass_date", { ascending: false })
       .order("created_at", { ascending: false })
       .returns<DayPassRow[]>(),
     supabase
@@ -125,7 +126,7 @@ export default async function DuenoIngresosPage({
       .filter((m) => inRange(m.start_date, w.start, w.end))
       .reduce((s, m) => s + Number(m.amount_paid), 0);
     const wDayPass = (dayPasses ?? [])
-      .filter((d) => inRange(localDateOf(d.created_at), w.start, w.end))
+      .filter((d) => inRange(d.pass_date, w.start, w.end))
       .reduce((s, d) => s + Number(d.amount), 0);
     const wSales = (sales ?? [])
       .filter((s) => inRange(s.sale_date, w.start, w.end))
@@ -451,7 +452,7 @@ export default async function DuenoIngresosPage({
                       <TableRow key={d.id}>
                         <TableCell>{d.visitor_name}</TableCell>
                         <TableCell>{money(Number(d.amount))}</TableCell>
-                        <TableCell>{formatDateOnlyLocal(d.created_at)}</TableCell>
+                        <TableCell>{formatDateOnlyLocal(`${d.pass_date}T12:00:00Z`)}</TableCell>
                         <TableCell>
                           <form action={deleteDayPass}>
                             <input type="hidden" name="id" value={d.id} />

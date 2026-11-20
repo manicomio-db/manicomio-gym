@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/supabase/session";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { todayLocal, addPlanDuration, localDateOf } from "@/lib/date";
+import { todayLocal, addDays, addPlanDuration, localDateOf } from "@/lib/date";
 import { generateSocioQrDataUrl } from "@/lib/qr";
 import type { RoutineContent } from "@/lib/types";
 
@@ -138,22 +138,55 @@ export async function updateMembership(formData: FormData) {
   revalidatePath("/dueno/ingresos");
 }
 
-export async function registerDayPass(formData: FormData) {
+export type DayPassState = { error: string | null; success: boolean };
+
+export async function registerDayPass(
+  _prev: DayPassState,
+  formData: FormData
+): Promise<DayPassState> {
   const { profile, supabase } = await requireStaff();
 
-  const visitorName = String(formData.get("visitor_name") ?? "").trim();
+  const visitorName = String(formData.get("visitor_name") ?? "").trim().slice(0, 80);
   const amount = Number(formData.get("amount") ?? 0);
 
-  if (!visitorName || amount <= 0) return;
+  if (!visitorName) return { error: "Escribe el nombre del visitante.", success: false };
+  if (!Number.isFinite(amount) || amount <= 0 || amount > 100000) {
+    return { error: "Escribe un monto válido.", success: false };
+  }
 
-  await supabase.from("day_passes").insert({
+  const today = todayLocal();
+  let passDate = today;
+
+  // Solo el director puede registrar visitas de otra fecha (para capturar días pasados).
+  if (profile.role === "dueno") {
+    const requested = String(formData.get("pass_date") ?? "") || today;
+    if (!/^d{4}-d{2}-d{2}$/.test(requested)) {
+      return { error: "La fecha no es válida.", success: false };
+    }
+    if (requested > today) {
+      return { error: "La fecha no puede ser futura.", success: false };
+    }
+    if (requested < addDays(today, -1100)) {
+      return { error: "La fecha es demasiado antigua (máximo 3 años).", success: false };
+    }
+    passDate = requested;
+  }
+
+  const { error } = await supabase.from("day_passes").insert({
     visitor_name: visitorName,
     amount,
+    pass_date: passDate,
     staff_id: profile.id,
   });
 
+  if (error) {
+    console.error("registerDayPass error:", error);
+    return { error: "No se pudo registrar la visita. Intenta de nuevo.", success: false };
+  }
+
   revalidatePath("/staff/acceso");
   revalidatePath("/dueno/ingresos");
+  return { error: null, success: true };
 }
 
 export type CheckInState = {

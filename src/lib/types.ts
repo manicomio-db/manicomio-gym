@@ -167,6 +167,8 @@ export type DayPass = {
   id: string;
   visitor_name: string;
   amount: number;
+  /** Fecha (YYYY-MM-DD) a la que pertenece la visita; puede ser anterior a created_at. */
+  pass_date: string;
   staff_id: string | null;
   created_at: string;
 };
