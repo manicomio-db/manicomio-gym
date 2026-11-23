@@ -160,7 +160,7 @@ export async function registerDayPass(
   // Solo el director puede registrar visitas de otra fecha (para capturar días pasados).
   if (profile.role === "dueno") {
     const requested = String(formData.get("pass_date") ?? "") || today;
-    if (!/^d{4}-d{2}-d{2}$/.test(requested)) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(requested)) {
       return { error: "La fecha no es válida.", success: false };
     }
     if (requested > today) {
